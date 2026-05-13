@@ -1,0 +1,265 @@
+---
+title: "Reporte de registro de candidatos UAS"
+#author: "Brittany Cecilia Pereo Sánchez"
+
+format:
+  html:
+    toc: false
+    theme: cosmo
+    output-file: index.html
+    embed-resources: true
+
+execute:
+  echo: false
+  warning: false
+  message: false
+
+lang: es
+---
+
+```{r setup}
+#| message: false
+#| warning: false
+
+library(googlesheets4)
+library(dplyr)
+library(janitor)
+library(ggplot2)
+library(scales)
+library(knitr)
+
+url_sheet <- "https://docs.google.com/spreadsheets/d/1Axj6z0U1odyFcdDz7Rjdv2jOZgnh9yIxKAXiWzvXKW4/edit?gid=0#gid=0"
+
+gs4_auth(
+  email = "lia.pereo@ciencias.unam.mx",
+  scopes = "https://www.googleapis.com/auth/spreadsheets.readonly"
+)
+
+nombres_hojas <- sheet_names(url_sheet) #Lee hojas
+
+lista_hojas <- lapply(nombres_hojas, function(hoja) {#guarda las hojas
+  read_sheet(ss = url_sheet, sheet = hoja) %>% 
+    clean_names()
+})
+
+names(lista_hojas) <- janitor::make_clean_names(nombres_hojas)
+#Guarda las hojas en una lista
+registros_completos <- lista_hojas[[1]]
+registros_incompletos <- lista_hojas[[2]]
+#Sacamos un resumen general
+resumen_registros <- tibble::tibble(
+  estatus = c("Registros completos", "Registros incompletos"),
+  total = c(
+    nrow(registros_completos),#cuenta num de filas
+    nrow(registros_incompletos)
+  )
+) %>% 
+  mutate(
+    porcentaje = total / sum(total), #pct para la dona
+    etiqueta = paste0( #Texto dentro de la dona
+      estatus, "\n",
+      comma(total), " registros\n",
+      percent(porcentaje, accuracy = 0.1)
+    )
+  )
+
+total_registros <- sum(resumen_registros$total)
+fecha_actualizacion <- format(Sys.time(), "%d/%m/%Y %H:%M")
+
+entidades_imb <- c(
+  "Baja California",
+  "Baja California Sur",
+  "Campeche",
+  "Chiapas",
+  "Colima",
+  "Guerrero",
+  "Hidalgo",
+  "México",
+  "Michoacán",
+  "Morelos",
+  "Nayarit",
+  "Oaxaca",
+  "Puebla",
+  "Quintana Roo",
+  "San Luis Potosí",
+  "Sinaloa",
+  "Sonora",
+  "Tabasco",
+  "Tamaulipas",
+  "Tlaxcala",
+  "Veracruz",
+  "Zacatecas",
+  "Ciudad de México"
+)
+
+avance_estado <- bind_rows(
+  registros_completos %>% 
+    mutate(estatus = "Completos"),
+  
+  registros_incompletos %>% 
+    mutate(estatus = "Incompletos")
+) %>% 
+  group_by(estado, estatus) %>% 
+  summarise(
+    total = n(),
+    .groups = "drop"
+  ) %>% 
+  tidyr::pivot_wider(
+    names_from = estatus,
+    values_from = total,
+    values_fill = 0
+  ) %>% 
+  right_join(
+    tibble::tibble(estado = entidades_imb),
+    by = "estado"
+  ) %>% 
+  mutate(
+    Completos = tidyr::replace_na(Completos, 0),
+    Incompletos = tidyr::replace_na(Incompletos, 0),
+    total_registros = Completos + Incompletos,
+    avance = dplyr::if_else(
+      total_registros == 0,
+      0,
+      Completos / total_registros
+    )
+  ) %>% 
+  arrange(avance)
+```
+
+<div style="background-color:#f4f6f8; padding:18px; border-radius:14px; margin-bottom:20px;">
+<h2 style="margin-bottom:4px;">Seguimiento de registros de candidatos UAS</h2>
+<p style="font-size:16px; margin-bottom:0;">
+Reporte actualizado el: <b>`r fecha_actualizacion`</b>
+</p>
+</div>
+
+## Resumen general
+
+<div style="display:flex; gap:16px; margin-bottom:24px;">
+
+<div style="flex:1; background-color:#ffffff; border:1px solid #ddd; padding:18px; border-radius:14px; text-align:center;">
+<h3>Total de registros</h3>
+<p style="font-size:32px; font-weight:bold;">`r comma(total_registros)`</p>
+</div>
+
+<div style="flex:1; background-color:#ffffff; border:1px solid #ddd; padding:18px; border-radius:14px; text-align:center;">
+<h3>Completos</h3>
+<p style="font-size:32px; font-weight:bold;">`r comma(nrow(registros_completos))`</p>
+</div>
+
+<div style="flex:1; background-color:#ffffff; border:1px solid #ddd; padding:18px; border-radius:14px; text-align:center;">
+<h3>Incompletos</h3>
+<p style="font-size:32px; font-weight:bold;">`r comma(nrow(registros_incompletos))`</p>
+</div>
+
+</div>
+
+## Distribución del registro
+
+```{r}
+#| fig-width: 7
+#| fig-height: 5
+
+ggplot(resumen_registros, aes(x = 2, y = total, fill = estatus)) +
+  
+  geom_col(
+    width = 1,
+    color = "white"
+  ) +
+  
+  coord_polar(theta = "y") +
+  
+  xlim(0.5, 2.5) +
+  
+  geom_text(
+    aes(label = etiqueta),
+    position = position_stack(vjust = 0.7),
+    size = 2.5,
+    color = "white",
+    fontface = "bold"
+  ) +
+  
+  scale_fill_manual(
+    values = c(
+      "Registros completos" = "#1E5B4F",
+      "Registros incompletos" = "#A02142"
+    )
+  ) +
+  
+  scale_y_continuous(labels = comma) +
+  
+  labs(
+    title = "Distribución de registros completos e incompletos",
+    fill = NULL
+  ) +
+  
+  theme_void() +
+  
+  theme(
+    plot.title = element_text(
+      hjust = 0.5,
+      face = "bold",
+      size = 15
+    ),
+    
+    legend.position = "bottom",
+    
+    legend.text = element_text(
+      size = 11
+    )
+  )
+```
+
+## Avance de registros por estado
+
+```{r}
+#| fig-width: 9
+#| fig-height: 7
+
+ggplot(
+  avance_estado,
+  aes(
+    x = reorder(estado, avance),
+    y = avance
+  )
+) +
+  geom_col(fill = "#1E5B4F") +
+  geom_text(
+    aes(label = percent(avance, accuracy = 0.1)),
+    hjust = -0.1,
+    size = 3.2
+  ) +
+  coord_flip() +
+  scale_y_continuous(
+    labels = percent,
+    limits = c(0, 1.08)
+  ) +
+  labs(
+    title = "Avance de registros completos por estado",
+    subtitle = "Porcentaje de registros completos respecto al total de registros",
+    x = NULL,
+    y = "Avance"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 15),
+    plot.subtitle = element_text(size = 11),
+    panel.grid.major.y = element_blank()
+  )
+```
+## Tabla resumen
+
+```{r}
+resumen_registros %>% 
+  mutate(
+    porcentaje = percent(porcentaje, accuracy = 0.1)
+  ) %>% 
+  select(
+    `Estatus del registro` = estatus,
+    `Total de registros` = total,
+    Porcentaje = porcentaje
+  ) %>% 
+  kable(
+    caption = "Resumen de registros por estatus"
+  )
+```
