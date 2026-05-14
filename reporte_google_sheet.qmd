@@ -74,14 +74,14 @@ entidades_imb <- c(
   "Colima",
   "Guerrero",
   "Hidalgo",
-  "México",
-  "Michoacán",
+  "Mexico",
+  "Michoacan",
   "Morelos",
   "Nayarit",
   "Oaxaca",
   "Puebla",
   "Quintana Roo",
-  "San Luis Potosí",
+  "San Luis Potosi",
   "Sinaloa",
   "Sonora",
   "Tabasco",
@@ -89,7 +89,7 @@ entidades_imb <- c(
   "Tlaxcala",
   "Veracruz",
   "Zacatecas",
-  "Ciudad de México"
+  "Ciudad de Mexico"
 )
 
 avance_estado <- bind_rows(
