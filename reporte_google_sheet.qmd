@@ -315,7 +315,7 @@ ggplot(
       y = dplyr::if_else(
         total_registros == 0,
         0,
-        total_registros
+        aprobados / total_registros
       )
     ),
     fill = "#1E5B4F",
@@ -333,7 +333,7 @@ ggplot(
       y = dplyr::if_else(
         total_registros == 0,
         0,
-        aprobados / total_registros
+        aprobados
       ),
       label = dplyr::if_else(
         aprobados > 0,
