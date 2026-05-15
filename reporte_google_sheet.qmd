@@ -27,6 +27,7 @@ library(janitor)
 library(ggplot2)
 library(scales)
 library(knitr)
+library(stringr)
 
 url_sheet <- "https://docs.google.com/spreadsheets/d/1Axj6z0U1odyFcdDz7Rjdv2jOZgnh9yIxKAXiWzvXKW4/edit?gid=0#gid=0"
 
@@ -65,6 +66,19 @@ resumen_registros <- tibble::tibble(
 
 total_registros <- sum(resumen_registros$total)
 fecha_actualizacion <- format(Sys.time(), "%d/%m/%Y %H:%M")
+
+resumen_revision_uas <- registros_completos %>% 
+  mutate(
+    revision_uas = stringr::str_to_lower(revision_uas),
+    revision_uas = stringr::str_squish(revision_uas)
+  ) %>% 
+  summarise(
+    aceptados = sum(revision_uas == "aceptado", na.rm = TRUE),
+    rechazados = sum(revision_uas == "rechazado", na.rm = TRUE)
+  )
+
+total_aceptados <- resumen_revision_uas$aceptados
+total_rechazados <- resumen_revision_uas$rechazados
 
 entidades_imb <- c(
   "Baja California",
@@ -128,6 +142,7 @@ avance_estado <- bind_rows(
 
 <div style="background-color:#f4f6f8; padding:18px; border-radius:14px; margin-bottom:20px;">
 <h2 style="margin-bottom:4px;">Seguimiento de registros de candidatos UAS</h2>
+
 <p style="font-size:16px; margin-bottom:0;">
 Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 </p>
@@ -135,7 +150,7 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 
 ## Resumen general
 
-<div style="display:flex; gap:16px; margin-bottom:24px;">
+<div style="display:flex; gap:16px; margin-bottom:24px; flex-wrap:wrap;">
 
 <div style="flex:1; background-color:#ffffff; border:1px solid #ddd; padding:18px; border-radius:14px; text-align:center;">
 <h3>Total de registros</h3>
@@ -150,6 +165,16 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 <div style="flex:1; background-color:#ffffff; border:1px solid #ddd; padding:18px; border-radius:14px; text-align:center;">
 <h3>Incompletos</h3>
 <p style="font-size:32px; font-weight:bold;">`r comma(nrow(registros_incompletos))`</p>
+</div>
+
+<div style="flex:1; background-color:#ffffff; border:1px solid #ddd; padding:18px; border-radius:14px; text-align:center;">
+<h3>Aceptados UAS</h3>
+<p style="font-size:32px; font-weight:bold; color:#1E5B4F;">`r comma(total_aceptados)`</p>
+</div>
+
+<div style="flex:1; background-color:#ffffff; border:1px solid #ddd; padding:18px; border-radius:14px; text-align:center;">
+<h3>Rechazados UAS</h3>
+<p style="font-size:32px; font-weight:bold; color:#A02142;">`r comma(total_rechazados)`</p>
 </div>
 
 </div>
