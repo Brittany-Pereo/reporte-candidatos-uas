@@ -315,11 +315,11 @@ ggplot(
       y = dplyr::if_else(
         total_registros == 0,
         0,
-        aprobados / total_registros
+        total_registros
       )
     ),
     fill = "#1E5B4F",
-    width = 0.45
+    width = 0.75
   ) +
   
   geom_text(
@@ -337,7 +337,7 @@ ggplot(
       ),
       label = dplyr::if_else(
         aprobados > 0,
-        paste0("Aprobados: ", aprobados),
+        paste0(aprobados),
         ""
       )
     ),
