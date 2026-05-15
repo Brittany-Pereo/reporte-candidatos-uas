@@ -304,70 +304,80 @@ ggplot(
     y = avance
   )
 ) +
+  
   geom_col(
     fill = "#d9efe6",
     width = 0.75
   ) +
-  geom_col(
-    aes(y = dplyr::if_else(Completos == 0, 0, aprobados / total_registros)),
-    fill = "#1E5B4F",
-    width = 0.45
-  ) +
+  
   geom_col(
     aes(
       y = dplyr::if_else(
-        Completos == 0,
+        total_registros == 0,
         0,
-        (aprobados + rechazados) / total_registros
+        aprobados / total_registros
       )
     ),
-    fill = "#A02142",
-    width = 0.25
+    fill = "#1E5B4F",
+    width = 0.45
   ) +
+  
   geom_text(
     aes(label = etiqueta_avance),
     hjust = -0.05,
     size = 3.1
   ) +
-  geom_text(
-    aes(
-      y = dplyr::if_else(Completos == 0, 0, aprobados / total_registros),
-      label = dplyr::if_else(aprobados > 0, paste0("A: ", aprobados), "")
-    ),
-    hjust = 1.1,
-    color = "white",
-    size = 2.8,
-    fontface = "bold"
-  ) +
+  
   geom_text(
     aes(
       y = dplyr::if_else(
-        Completos == 0,
+        total_registros == 0,
         0,
-        (aprobados + rechazados) / total_registros
+        aprobados / total_registros
       ),
-      label = dplyr::if_else(rechazados > 0, paste0("R: ", rechazados), "")
+      label = dplyr::if_else(
+        aprobados > 0,
+        paste0("Aprobados: ", aprobados),
+        ""
+      )
     ),
-    hjust = -0.1,
-    color = "#A02142",
-    size = 2.8,
+    hjust = 1.1,
+    color = "white",
+    size = 2.7,
     fontface = "bold"
   ) +
+  
   coord_flip() +
+  
   scale_y_continuous(
     labels = percent,
     limits = c(0, 1.18)
   ) +
+  
   labs(
     title = "Avance de registros completos por estado",
-    subtitle = "La etiqueta muestra porcentaje de avance y numerador: completos / total. La barra interna muestra aprobados y rechazados dentro de los registros completos.",
+    
+    subtitle = paste(
+      "La barra clara representa registros completos.",
+      "La barra verde representa candidatos aprobados UAS."
+    ),
+    
     x = NULL,
     y = "Avance"
   ) +
+  
   theme_minimal() +
+  
   theme(
-    plot.title = element_text(face = "bold", size = 15),
-    plot.subtitle = element_text(size = 10),
+    plot.title = element_text(
+      face = "bold",
+      size = 15
+    ),
+    
+    plot.subtitle = element_text(
+      size = 10
+    ),
+    
     panel.grid.major.y = element_blank()
   )
 ```
