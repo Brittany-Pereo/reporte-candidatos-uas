@@ -113,6 +113,17 @@ entidades_imb <- c(
   "Zacatecas",
   "Ciudad de Mexico"
 )
+revision_estado <- registros_completos %>% 
+  mutate(
+    revision_uas = stringr::str_to_lower(revision_uas),
+    revision_uas = stringr::str_squish(revision_uas)
+  ) %>% 
+  group_by(estado) %>% 
+  summarise(
+    aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
+    rechazados = sum(revision_uas == "rechazado", na.rm = TRUE),
+    .groups = "drop"
+  )
 
 avance_estado <- bind_rows(
   registros_completos %>% 
@@ -135,14 +146,24 @@ avance_estado <- bind_rows(
     tibble::tibble(estado = entidades_imb),
     by = "estado"
   ) %>% 
+  left_join(
+    revision_estado,
+    by = "estado"
+  ) %>% 
   mutate(
     Completos = tidyr::replace_na(Completos, 0),
     Incompletos = tidyr::replace_na(Incompletos, 0),
+    aprobados = tidyr::replace_na(aprobados, 0),
+    rechazados = tidyr::replace_na(rechazados, 0),
     total_registros = Completos + Incompletos,
     avance = dplyr::if_else(
       total_registros == 0,
       0,
       Completos / total_registros
+    ),
+    etiqueta_avance = paste0(
+      percent(avance, accuracy = 0.1),
+      "  (", comma(Completos), "/", comma(total_registros), ")"
     )
   ) %>% 
   arrange(avance)
@@ -283,27 +304,70 @@ ggplot(
     y = avance
   )
 ) +
-  geom_col(fill = "#1E5B4F") +
+  geom_col(
+    fill = "#d9efe6",
+    width = 0.75
+  ) +
+  geom_col(
+    aes(y = dplyr::if_else(Completos == 0, 0, aprobados / total_registros)),
+    fill = "#1E5B4F",
+    width = 0.45
+  ) +
+  geom_col(
+    aes(
+      y = dplyr::if_else(
+        Completos == 0,
+        0,
+        (aprobados + rechazados) / total_registros
+      )
+    ),
+    fill = "#A02142",
+    width = 0.25
+  ) +
   geom_text(
-    aes(label = percent(avance, accuracy = 0.1)),
+    aes(label = etiqueta_avance),
+    hjust = -0.05,
+    size = 3.1
+  ) +
+  geom_text(
+    aes(
+      y = dplyr::if_else(Completos == 0, 0, aprobados / total_registros),
+      label = dplyr::if_else(aprobados > 0, paste0("A: ", aprobados), "")
+    ),
+    hjust = 1.1,
+    color = "white",
+    size = 2.8,
+    fontface = "bold"
+  ) +
+  geom_text(
+    aes(
+      y = dplyr::if_else(
+        Completos == 0,
+        0,
+        (aprobados + rechazados) / total_registros
+      ),
+      label = dplyr::if_else(rechazados > 0, paste0("R: ", rechazados), "")
+    ),
     hjust = -0.1,
-    size = 3.2
+    color = "#A02142",
+    size = 2.8,
+    fontface = "bold"
   ) +
   coord_flip() +
   scale_y_continuous(
     labels = percent,
-    limits = c(0, 1.08)
+    limits = c(0, 1.18)
   ) +
   labs(
     title = "Avance de registros completos por estado",
-    subtitle = "Porcentaje de registros completos respecto al total de registros",
+    subtitle = "La etiqueta muestra porcentaje de avance y numerador: completos / total. La barra interna muestra aprobados y rechazados dentro de los registros completos.",
     x = NULL,
     y = "Avance"
   ) +
   theme_minimal() +
   theme(
     plot.title = element_text(face = "bold", size = 15),
-    plot.subtitle = element_text(size = 11),
+    plot.subtitle = element_text(size = 10),
     panel.grid.major.y = element_blank()
   )
 ```
