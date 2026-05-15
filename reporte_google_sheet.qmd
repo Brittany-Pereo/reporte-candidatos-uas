@@ -60,7 +60,7 @@ resumen_registros <- tibble::tibble(
     etiqueta = paste0( #Texto dentro de la dona
       estatus, "\n",
       comma(total), " registros\n",
-      percent(porcentaje, accuracy = 0.1)
+      percent(porcentaje, accuracy = 1)
     )
   )
 
@@ -162,7 +162,7 @@ avance_estado <- bind_rows(
       Completos / total_registros
     ),
     etiqueta_avance = paste0(
-      percent(avance, accuracy = 0.1),
+      percent(avance, accuracy = 1),
       "  (", comma(Completos), "/", comma(total_registros), ")"
     )
   ) %>% 
@@ -191,13 +191,13 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 <div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:24px; border-radius:16px;">
 <h3>Completos</h3>
 <p style="font-size:34px; font-weight:bold; color:#1E5B4F; margin:0;">`r comma(nrow(registros_completos))`</p>
-<p style="margin-top:8px;">`r percent(pct_completos, accuracy = 0.1)` del total</p>
+<p style="margin-top:8px;">`r percent(pct_completos, accuracy = 1)` del total</p>
 </div>
 
 <div style="background-color:#fff6f7; border:1px solid #f0cfd6; padding:24px; border-radius:16px;">
 <h3>Incompletos</h3>
 <p style="font-size:34px; font-weight:bold; color:#A02142; margin:0;">`r comma(nrow(registros_incompletos))`</p>
-<p style="margin-top:8px;">`r percent(pct_incompletos, accuracy = 0.1)` del total</p>
+<p style="margin-top:8px;">`r percent(pct_incompletos, accuracy = 1)` del total</p>
 </div>
 
 </div>
@@ -212,8 +212,8 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 <h3>Aprobados UAS</h3>
 <p style="font-size:34px; font-weight:bold; color:#1E5B4F; margin:0;">`r comma(total_aprobados)`</p>
 <p style="margin-top:8px;">
-`r percent(pct_aprobados_total, accuracy = 0.1)` del total<br>
-`r percent(pct_aprobados_completos, accuracy = 0.1)` de los completos
+`r percent(pct_aprobados_total, accuracy = 1)` del total<br>
+`r percent(pct_aprobados_completos, accuracy = 1)` de los completos
 </p>
 </div>
 
@@ -221,8 +221,8 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 <h3>Rechazados UAS</h3>
 <p style="font-size:34px; font-weight:bold; color:#A02142; margin:0;">`r comma(total_rechazados)`</p>
 <p style="margin-top:8px;">
-`r percent(pct_rechazados_total, accuracy = 0.1)` del total<br>
-`r percent(pct_rechazados_completos, accuracy = 0.1)` de los completos
+`r percent(pct_rechazados_total, accuracy = 1)` del total<br>
+`r percent(pct_rechazados_completos, accuracy = 1)` de los completos
 </p>
 </div>
 
@@ -329,30 +329,30 @@ ggplot(
   ) +
   
   geom_text(
-    aes(
-      y = dplyr::if_else(
-        total_registros == 0,
-        0,
-        aprobados
-      ),
-      label = dplyr::if_else(
-        aprobados > 0,
-        paste0(aprobados),
-        ""
-      )
+  aes(
+    y = dplyr::if_else(
+      total_registros == 0,
+      0,
+      aprobados / total_registros
     ),
-    hjust = 1.1,
-    color = "white",
-    size = 2.7,
-    fontface = "bold"
-  ) +
+    label = dplyr::if_else(
+      aprobados > 0,
+      comma(aprobados),
+      ""
+    )
+  ),
+  hjust = 1.1,
+  color = "white",
+  size = 2.7,
+  fontface = "bold"
+) +
   
   coord_flip() +
   
-  scale_y_continuous(
-    labels = percent,
-    limits = c(0, 1.18)
-  ) +
+scale_y_continuous(
+  labels = \(x) percent(x, accuracy = 1),
+  limits = c(0, 1.18)
+)+
   
   labs(
     title = "Avance de registros completos por estado",
@@ -386,7 +386,7 @@ ggplot(
 ```{r}
 resumen_registros %>% 
   mutate(
-    porcentaje = percent(porcentaje, accuracy = 0.1)
+    porcentaje = percent(porcentaje, accuracy = 1)
   ) %>% 
   select(
     `Estatus del registro` = estatus,
