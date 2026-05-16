@@ -451,7 +451,10 @@ theme(
 ggplot(
   aprobados_clave_puesto,
   aes(
-    x = reorder(clave_puesto, aprobados),
+    x = reorder(
+      stringr::str_wrap(clave_puesto, width = 35),
+      aprobados
+    ),
     y = aprobados
   )
 ) +
