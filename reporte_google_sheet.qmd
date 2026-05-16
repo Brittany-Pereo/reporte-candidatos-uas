@@ -254,16 +254,6 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 <p style="font-size:34px; font-weight:bold; color:#A02142; margin:0;">`r comma(nrow(registros_incompletos))`</p>
 <p style="margin-top:8px;">`r percent(pct_incompletos, accuracy = 1)` del total</p>
 </div>
-
-<div style="background-color:#fffaf0; border:1px solid #f1d58a; padding:24px; border-radius:16px;">
-<h3>Por revisar UAS</h3>
-<p style="font-size:34px; font-weight:bold; color:#9A6B00; margin:0;">`r comma(total_por_revisar)`</p>
-<p style="margin-top:8px;">
-`r percent(pct_por_revisar_total, accuracy = 1)` del total<br>
-`r percent(pct_por_revisar_completos, accuracy = 1)` de los completos
-</p>
-</div>
-
 <div style="border:1px solid #ddd; border-radius:16px; padding:22px;">
 
 <h3 style="text-align:center; margin-top:0;">Detalle de registros completos (`r comma(nrow(registros_completos))`)</h3>
@@ -285,6 +275,15 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 <p style="margin-top:8px;">
 `r percent(pct_rechazados_total, accuracy = 1)` del total<br>
 `r percent(pct_rechazados_completos, accuracy = 1)` de los completos
+</p>
+</div>
+
+<div style="background-color:#fffaf0; border:1px solid #f1d58a; padding:24px; border-radius:16px;">
+<h3>Por revisar</h3>
+<p style="font-size:34px; font-weight:bold; color:#9A6B00; margin:0;">`r comma(total_por_revisar)`</p>
+<p style="margin-top:8px;">
+`r percent(pct_por_revisar_total, accuracy = 1)` del total<br>
+`r percent(pct_por_revisar_completos, accuracy = 1)` de los completos
 </p>
 </div>
 
