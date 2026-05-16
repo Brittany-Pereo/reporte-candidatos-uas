@@ -511,9 +511,9 @@ ggplot(
 tabla_unidades <- registros_completos %>% 
   mutate(
     categoria = case_when(
-      str_detect(CNPM, "^ME") ~ "med_especi",
-      str_detect(CNPM, "^MG") ~ "med_gen",
-      str_detect(CNPM, "^EN") ~ "enf",
+      str_detect(cnpm, "^ME") ~ "med_especi",
+      str_detect(cnpm, "^MG") ~ "med_gen",
+      str_detect(cnpm, "^EN") ~ "enf",
       TRUE ~ "otro"
     )
   ) %>% 
@@ -548,3 +548,4 @@ tabla_unidades %>%
   knitr::kable(
     caption = "Unidades médicas ordenadas por número de propuestas"
   )
+```
