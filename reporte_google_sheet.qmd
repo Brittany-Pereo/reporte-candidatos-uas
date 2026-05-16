@@ -368,18 +368,30 @@ scale_y_continuous(
   
   theme_minimal() +
   
-  theme(
-    plot.title = element_text(
-      face = "bold",
-      size = 15
-    ),
-    
-    plot.subtitle = element_text(
-      size = 10
-    ),
-    
-    panel.grid.major.y = element_blank()
-  )
+theme(
+  plot.title = element_text(
+    face = "bold",
+    size = 18
+  ),
+  
+  plot.subtitle = element_text(
+    size = 12
+  ),
+  
+  axis.text.y = element_text(
+    size = 12
+  ),
+  
+  axis.text.x = element_text(
+    size = 11
+  ),
+  
+  axis.title.x = element_text(
+    size = 13
+  ),
+  
+  panel.grid.major.y = element_blank()
+)
 ```
 ## Tabla resumen
 
