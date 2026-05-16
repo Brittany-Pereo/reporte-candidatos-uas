@@ -186,13 +186,12 @@ aprobados_clave_puesto <- registros_completos %>%
 
 tabla_unidades_base <- registros_completos %>% 
   mutate(
-    categoria = case_when(
-      str_detect(str_to_lower(clave_puesto), "especialista") ~ "med_especi",
-      str_detect(str_to_lower(clave_puesto), "general") ~ "med_gen",
-      str_detect(str_to_lower(clave_puesto), "enfermera|enfermeria|auxiliar") ~ "enf",
-      TRUE ~ "otro"
-    )
-  ) %>% 
+categoria = case_when(
+  str_detect(str_to_lower(clave_puesto), "medicina interna|medico especialista|medica especialista|especialista") ~ "med_especi",
+  str_detect(str_to_lower(clave_puesto), "medico general|medica general") ~ "med_gen",
+  str_detect(str_to_lower(clave_puesto), "enfermera|enfermeria|auxiliar") ~ "enf",
+  TRUE ~ "otro"
+)) %>% 
   count(clues, unidad_medica, categoria) %>% 
   tidyr::pivot_wider(
     names_from = categoria,
