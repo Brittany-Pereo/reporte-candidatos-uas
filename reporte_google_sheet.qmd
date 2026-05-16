@@ -167,6 +167,15 @@ avance_estado <- bind_rows(
 )
   ) %>% 
   arrange(avance)
+
+aprobados_clave_puesto <- registros_completos %>% 
+  mutate(
+    revision_uas = stringr::str_to_lower(revision_uas),
+    revision_uas = stringr::str_squish(revision_uas)
+  ) %>% 
+  filter(revision_uas == "aprobado") %>% 
+  count(clave_puesto, name = "aprobados") %>% 
+  arrange(aprobados)
 ```
 
 <div style="background-color:#f4f6f8; padding:18px; border-radius:14px; margin-bottom:20px;">
@@ -393,19 +402,46 @@ theme(
   panel.grid.major.y = element_blank()
 )
 ```
-## Tabla resumen
-
+## Registros aprobados por clave de puesto
 ```{r}
-resumen_registros %>% 
-  mutate(
-    porcentaje = percent(porcentaje, accuracy = 1)
-  ) %>% 
-  select(
-    `Estatus del registro` = estatus,
-    `Total de registros` = total,
-    Porcentaje = porcentaje
-  ) %>% 
-  kable(
-    caption = "Resumen de registros por estatus"
+#| fig-width: 9
+#| fig-height: 6
+
+ggplot(
+  aprobados_clave_puesto,
+  aes(
+    x = reorder(clave_puesto, aprobados),
+    y = aprobados
+  )
+) +
+  geom_col(
+    fill = "#1E5B4F",
+    width = 0.75
+  ) +
+  geom_text(
+    aes(label = comma(aprobados)),
+    hjust = -0.15,
+    size = 4,
+    fontface = "bold"
+  ) +
+  coord_flip() +
+  scale_y_continuous(
+    labels = comma,
+    expand = expansion(mult = c(0, 0.15))
+  ) +
+  labs(
+    title = "Registros aprobados por clave de puesto",
+    subtitle = "Candidatos con revisión UAS aprobada",
+    x = NULL,
+    y = "Registros aprobados"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 18),
+    plot.subtitle = element_text(size = 12),
+    axis.text.y = element_text(size = 12),
+    axis.text.x = element_text(size = 11),
+    axis.title.x = element_text(size = 13),
+    panel.grid.major.y = element_blank()
   )
 ```
