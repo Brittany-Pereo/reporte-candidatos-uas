@@ -103,7 +103,7 @@ entidades_imb <- c(
   "Colima",
   "Guerrero",
   "Hidalgo",
-  "Mexico",
+  "Estado de Mexico",
   "Michoacan",
   "Morelos",
   "Nayarit",
