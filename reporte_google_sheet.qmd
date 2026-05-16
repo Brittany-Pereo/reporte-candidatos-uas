@@ -511,26 +511,40 @@ ggplot(
 tabla_unidades <- registros_completos %>% 
   mutate(
     categoria = case_when(
-      str_detect(str_to_lower(clave_puesto), "especialista") ~ "med_especi",
-      str_detect(str_to_lower(clave_puesto), "general") ~ "med_gen",
-      str_detect(str_to_lower(clave_puesto), "enfermera|enfermeria|auxiliar") ~ "enf",
+      str_detect(CNPM, "^ME") ~ "med_especi",
+      str_detect(CNPM, "^MG") ~ "med_gen",
+      str_detect(CNPM, "^EN") ~ "enf",
       TRUE ~ "otro"
     )
   ) %>% 
-  count(clues, unidad_medica, categoria) %>% 
+  filter(categoria != "otro") %>% 
+  count(estado, clues, unidad_medica, categoria) %>% 
   tidyr::pivot_wider(
     names_from = categoria,
     values_from = n,
     values_fill = 0
   )
 
+if (!"med_especi" %in% names(tabla_unidades)) tabla_unidades$med_especi <- 0
+if (!"med_gen" %in% names(tabla_unidades)) tabla_unidades$med_gen <- 0
+if (!"enf" %in% names(tabla_unidades)) tabla_unidades$enf <- 0
+
 tabla_unidades <- tabla_unidades %>% 
   mutate(
-    med_especi = if ("med_especi" %in% names(.)) med_especi else 0,
-    med_gen = if ("med_gen" %in% names(.)) med_gen else 0,
-    enf = if ("enf" %in% names(.)) enf else 0,
     total_propuestas = med_especi + med_gen + enf
   ) %>% 
   arrange(desc(total_propuestas))
-  
-```
+
+tabla_unidades %>% 
+  select(
+    Estado = estado,
+    CLUES = clues,
+    `Unidad médica` = unidad_medica,
+    `Med. especialistas` = med_especi,
+    `Med. generales` = med_gen,
+    Enfermería = enf,
+    Total = total_propuestas
+  ) %>% 
+  knitr::kable(
+    caption = "Unidades médicas ordenadas por número de propuestas"
+  )
