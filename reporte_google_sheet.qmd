@@ -423,10 +423,10 @@ scale_y_continuous(
   labs(
     title = "Avance de registros completos por estado",
     
-    subtitle = paste(
-      "La barra clara representa registros completos.",
-      "La barra verde representa candidatos aprobados UAS."
-    ),
+   subtitle = paste0(
+  "La barra verde claro representa registros completos.\n",
+  "La barra verde representa candidatos aprobados UAS."
+),
     
     x = NULL,
     y = "Avance"
