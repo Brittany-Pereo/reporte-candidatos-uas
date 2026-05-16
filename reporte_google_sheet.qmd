@@ -301,8 +301,8 @@ Los porcentajes de Aprobados, Rechazados y Por revisar se calculan respecto al t
 </div>
 
 </div>
-## Distribución del registro
 
+## Distribución del registro
 ```{r}
 #| fig-width: 7
 #| fig-height: 5
