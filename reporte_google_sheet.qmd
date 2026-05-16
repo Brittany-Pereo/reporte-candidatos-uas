@@ -171,11 +171,52 @@ avance_estado <- bind_rows(
 aprobados_clave_puesto <- registros_completos %>% 
   mutate(
     revision_uas = stringr::str_to_lower(revision_uas),
-    revision_uas = stringr::str_squish(revision_uas)
+    revision_uas = stringr::str_squish(revision_uas),
+    
+    clave_puesto = stringr::str_to_title(
+      stringr::str_to_lower(clave_puesto)
+    )
   ) %>% 
+  
   filter(revision_uas == "aprobado") %>% 
+  
   count(clave_puesto, name = "aprobados") %>% 
+  
   arrange(aprobados)
+
+tabla_unidades_base <- registros_completos %>% 
+  mutate(
+    categoria = case_when(
+      str_detect(str_to_lower(clave_puesto), "especialista") ~ "med_especi",
+      str_detect(str_to_lower(clave_puesto), "general") ~ "med_gen",
+      str_detect(str_to_lower(clave_puesto), "enfermera|enfermeria|auxiliar") ~ "enf",
+      TRUE ~ "otro"
+    )
+  ) %>% 
+  count(clues, unidad_medica, categoria) %>% 
+  tidyr::pivot_wider(
+    names_from = categoria,
+    values_from = n,
+    values_fill = 0
+  )
+
+if (!"med_especi" %in% names(tabla_unidades_base)) {
+  tabla_unidades_base$med_especi <- 0
+}
+
+if (!"med_gen" %in% names(tabla_unidades_base)) {
+  tabla_unidades_base$med_gen <- 0
+}
+
+if (!"enf" %in% names(tabla_unidades_base)) {
+  tabla_unidades_base$enf <- 0
+}
+
+tabla_unidades <- tabla_unidades_base %>% 
+  mutate(
+    total_propuestas = med_especi + med_gen + enf
+  ) %>% 
+  arrange(desc(total_propuestas))
 ```
 
 <div style="background-color:#f4f6f8; padding:18px; border-radius:14px; margin-bottom:20px;">
@@ -430,10 +471,10 @@ ggplot(
     expand = expansion(mult = c(0, 0.15))
   ) +
   labs(
-    title = "Registros aprobados por clave de puesto",
+    title = "Aprobados por clave de puesto",
     subtitle = "Candidatos con revisión UAS aprobada",
     x = NULL,
-    y = "Registros aprobados"
+    y = ""
   ) +
   theme_minimal() +
   theme(
@@ -444,4 +485,33 @@ ggplot(
     axis.title.x = element_text(size = 13),
     panel.grid.major.y = element_blank()
   )
+```
+## Tabla de unidades médicas
+
+```{r}
+tabla_unidades <- registros_completos %>% 
+  mutate(
+    categoria = case_when(
+      str_detect(str_to_lower(clave_puesto), "especialista") ~ "med_especi",
+      str_detect(str_to_lower(clave_puesto), "general") ~ "med_gen",
+      str_detect(str_to_lower(clave_puesto), "enfermera|enfermeria|auxiliar") ~ "enf",
+      TRUE ~ "otro"
+    )
+  ) %>% 
+  count(clues, unidad_medica, categoria) %>% 
+  tidyr::pivot_wider(
+    names_from = categoria,
+    values_from = n,
+    values_fill = 0
+  )
+
+tabla_unidades <- tabla_unidades %>% 
+  mutate(
+    med_especi = if ("med_especi" %in% names(.)) med_especi else 0,
+    med_gen = if ("med_gen" %in% names(.)) med_gen else 0,
+    enf = if ("enf" %in% names(.)) enf else 0,
+    total_propuestas = med_especi + med_gen + enf
+  ) %>% 
+  arrange(desc(total_propuestas))
+  
 ```
