@@ -162,9 +162,9 @@ avance_estado <- bind_rows(
       Completos / total_registros
     ),
     etiqueta_avance = paste0(
-      percent(avance, accuracy = 1),
-      "  (", comma(Completos), "/", comma(total_registros), ")"
-    )
+  percent(avance, accuracy = 1),
+  "  (", comma(total_registros), ")"
+)
   ) %>% 
   arrange(avance)
 ```
