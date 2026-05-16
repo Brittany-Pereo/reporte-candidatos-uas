@@ -127,7 +127,7 @@ revision_estado <- registros_completos %>%
   group_by(estado) %>% 
   summarise(
     aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
-    rechazados = sum(revision_uas == "rechazado", na.rm = TRUE),
+    rechazados = sum(revision_uas == "no aprobado", na.rm = TRUE),
     .groups = "drop"
   )
 
