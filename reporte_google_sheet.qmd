@@ -78,7 +78,7 @@ resumen_revision_uas <- registros_completos %>%
   ) %>% 
   summarise(
     aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
-    rechazados = sum(revision_uas == "rechazado", na.rm = TRUE),
+    rechazados = sum(revision_uas == "no aprobado", na.rm = TRUE),
     por_revisar = sum(revision_uas == "", na.rm = TRUE)
   )
 
