@@ -28,6 +28,7 @@ library(ggplot2)
 library(scales)
 library(knitr)
 library(stringr)
+library(DT)
 
 url_sheet <- "https://docs.google.com/spreadsheets/d/1Axj6z0U1odyFcdDz7Rjdv2jOZgnh9yIxKAXiWzvXKW4/edit?gid=0#gid=0"
 
@@ -535,7 +536,7 @@ tabla_unidades <- tabla_unidades %>%
   ) %>% 
   arrange(desc(total_propuestas))
 
-tabla_unidades %>% 
+tabla_unidades_final <- tabla_unidades %>% 
   select(
     Estado = estado,
     CLUES = clues,
@@ -544,8 +545,20 @@ tabla_unidades %>%
     `Med. generales` = med_gen,
     Enfermería = enf,
     Total = total_propuestas
-  ) %>% 
-  knitr::kable(
-    caption = "Unidades médicas ordenadas por número de propuestas"
   )
+
+DT::datatable(
+  tabla_unidades_final,
+  filter = "top",
+  options = list(
+    pageLength = 10,
+    autoWidth = TRUE,
+    scrollX = TRUE
+  ),
+  rownames = FALSE,
+  caption = htmltools::tags$caption(
+    style = 'caption-side: top; text-align: left; font-weight: bold;',
+    'Unidades médicas ordenadas por número de propuestas'
+  )
+)
 ```
