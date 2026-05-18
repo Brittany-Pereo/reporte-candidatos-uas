@@ -388,15 +388,14 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 <h3>Rechazados UAS</h3>
 <p style="font-size:34px; font-weight:bold; color:#A02142; margin:0;">`r comma(valor_resumen("med_especi", rechazados))`</p>
 </div>
-
 </div>
+
+:::
 
 <div style="background-color:#eaf4ff; color:#155a9c; padding:14px 18px; border-radius:12px;">
 Los porcentajes de Aprobados, Rechazados y Por revisar se calculan respecto al total de registros y respecto a los registros completos.
 </div>
-
 </div>
-:::
 
 </details>
 ## Distribución del registro
