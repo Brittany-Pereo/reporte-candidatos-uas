@@ -278,7 +278,7 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 ## Resumen general
 
 <details open>
-<summary><b>Resumen general</b></summary>
+<summary><b></b></summary>
 
 <div style="display:grid; gap:18px; margin-bottom:28px;">
 
