@@ -648,16 +648,19 @@ ggplot(
     fill = "#d9efe6",
     width = 0.75
   ) +
-  geom_col(
-    aes(y = pct_rechazados),
-    fill = "#A02142",
-    width = 0.75
-  ) +
+
   geom_col(
     aes(y = pct_aprobacion),
     fill = "#1E5B4F",
     width = 0.75
   ) +
+  
+  geom_col(
+    aes(y = pct_rechazados),
+    fill = "#A02142",
+    width = 0.75
+  ) +
+  
   geom_text(
     aes(
       y = pct_rechazados / 2,
