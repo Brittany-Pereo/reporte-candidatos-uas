@@ -363,7 +363,7 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 
 <div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:22px; border-radius:18px;">
 
-<p style="margin:0; color:#4b5563; font-size:16px; font-weight:700;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">
 Aprobados UAS
 </p>
 
@@ -375,7 +375,7 @@ Aprobados UAS
 
 <div style="background-color:#fffaf0; border:1px solid #f1d58a; padding:22px; border-radius:18px;">
 
-<p style="margin:0; color:#4b5563; font-size:16px; font-weight:700;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">
 Por revisar UAS
 </p>
 
@@ -387,7 +387,7 @@ Por revisar UAS
 
 <div style="background-color:#fff6f7; border:1px solid #f0cfd6; padding:22px; border-radius:18px;">
 
-<p style="margin:0; color:#4b5563; font-size:16px; font-weight:700;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">
 Rechazados UAS
 </p>
 
@@ -404,7 +404,7 @@ Rechazados UAS
 
 <div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:22px; border-radius:18px;">
 
-<p style="margin:0; color:#4b5563; font-size:16px; font-weight:700;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">
 Aprobados UAS
 </p>
 
@@ -416,7 +416,7 @@ Aprobados UAS
 
 <div style="background-color:#fffaf0; border:1px solid #f1d58a; padding:22px; border-radius:18px;">
 
-<p style="margin:0; color:#4b5563; font-size:16px; font-weight:700;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">
 Por revisar UAS
 </p>
 
@@ -428,7 +428,7 @@ Por revisar UAS
 
 <div style="background-color:#fff6f7; border:1px solid #f0cfd6; padding:22px; border-radius:18px;">
 
-<p style="margin:0; color:#4b5563; font-size:16px; font-weight:700;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">
 Rechazados UAS
 </p>
 
@@ -446,7 +446,7 @@ Rechazados UAS
 
 <div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:22px; border-radius:18px;">
 
-<p style="margin:0; color:#4b5563; font-size:16px; font-weight:700;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">
 Aprobados UAS
 </p>
 
@@ -458,7 +458,7 @@ Aprobados UAS
 
 <div style="background-color:#fffaf0; border:1px solid #f1d58a; padding:22px; border-radius:18px;">
 
-<p style="margin:0; color:#4b5563; font-size:16px; font-weight:700;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">
 Por revisar UAS
 </p>
 
@@ -470,7 +470,7 @@ Por revisar UAS
 
 <div style="background-color:#fff6f7; border:1px solid #f0cfd6; padding:22px; border-radius:18px;">
 
-<p style="margin:0; color:#4b5563; font-size:16px; font-weight:700;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">
 Rechazados UAS
 </p>
 
