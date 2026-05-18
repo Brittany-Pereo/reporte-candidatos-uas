@@ -550,10 +550,10 @@ scale_y_continuous(
   labs(
     title = "Avance de registros completos por estado",
     
-subtitle = paste0(
-  "La barra verde claro representa registros completos.\n",
-  "La barra verde representa candidatos aprobados UAS.\n",
-  "La barra roja representa candidatos no aprobados UAS."
+caption = paste0(
+  "■ Verde claro: registros completos   ",
+  "■ Verde: candidatos aprobados UAS   ",
+  "■ Rojo: candidatos no aprobados UAS"
 ),
     
     x = NULL,
@@ -583,6 +583,11 @@ theme(
   axis.title.x = element_text(
     size = 13
   ),
+  plot.caption = element_text(
+  size = 11,
+  hjust = 0,
+  margin = margin(t = 15)
+),
   
   panel.grid.major.y = element_blank()
 )
