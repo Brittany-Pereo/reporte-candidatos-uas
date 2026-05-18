@@ -415,149 +415,7 @@ Los porcentajes de Aprobados, Rechazados y Por revisar se calculan respecto al t
 
 </details>
 
-## Avance de registros completos 
-<details open>
-<summary><b>Registros completos por estado</b></summary>
-
-```{r}
-#| fig-width: 9
-#| fig-height: 7
-
-ggplot(
-  avance_estado,
-  aes(
-    x = reorder(estado, avance),
-    y = avance
-  )
-) +
-  
-  geom_col(
-    fill = "#d9efe6",
-    width = 0.75
-  ) +
-  
-  geom_col(
-    aes(
-      y = dplyr::if_else(
-        total_registros == 0,
-        0,
-        rechazados / total_registros
-      )
-    ),
-    fill = "#A02142",
-    width = 0.75
-  ) +
-  
-  geom_col(
-    aes(
-      y = dplyr::if_else(
-        total_registros == 0,
-        0,
-        aprobados / total_registros
-      )
-    ),
-    fill = "#1E5B4F",
-    width = 0.75
-  ) +
-  
-  geom_text(
-    aes(label = etiqueta_avance),
-    hjust = -0.05,
-    size = 3.1
-  ) +
-  
-  geom_text(
-  aes(
-    y = dplyr::if_else(
-      total_registros == 0,
-      0,
-      rechazados / total_registros
-    ),
-    label = dplyr::if_else(
-      rechazados > 0,
-      comma(rechazados),
-      ""
-    )
-  ),
-  hjust = 1.1,
-  color = "white",
-  size = 2.7,
-  fontface = "bold"
-) +
-  
-  geom_text(
-  aes(
-    y = dplyr::if_else(
-      total_registros == 0,
-      0,
-      aprobados / total_registros
-    ),
-    label = dplyr::if_else(
-      aprobados > 0,
-      comma(aprobados),
-      ""
-    )
-  ),
-  hjust = 1.1,
-  color = "white",
-  size = 2.7,
-  fontface = "bold"
-) +
-  
-  coord_flip() +
-  
-scale_y_continuous(
-  labels = \(x) percent(x, accuracy = 1),
-  limits = c(0, 1.18)
-)+
-  
-labs(
-  title = "",
-  caption = paste0(
-    "<span style='color:#d9efe6;'>■</span> Registros completos&nbsp;&nbsp;&nbsp;",
-    "<span style='color:#1E5B4F;'>■</span> Candidatos aprobados UAS&nbsp;&nbsp;&nbsp;",
-    "<span style='color:#A02142;'>■</span> Candidatos no aprobados UAS"
-  ),
-  x = NULL,
-  y = "Avance"
-) +
-  
-  theme_minimal() +
-  
-theme(
-  plot.title = element_text(
-    face = "bold",
-    size = 18
-  ),
-  
-  plot.subtitle = element_text(
-    size = 12
-  ),
-  
-  axis.text.y = element_text(
-    size = 12
-  ),
-  
-  axis.text.x = element_text(
-    size = 11
-  ),
-  
-  axis.title.x = element_text(
-    size = 13
-  ),
-plot.caption = ggtext::element_markdown(
-  size = 11,
-  hjust = 0,
-  margin = margin(t = 15)
-),
-  
-  panel.grid.major.y = element_blank()
-)
-```
-</details>
-
 ## Registros aprobados por clave de puesto
-
 <details open>
 <summary><b>Aprobados por clave de puesto</b></summary>
 
@@ -697,165 +555,6 @@ ggplot(
     plot.margin = margin(10, 55, 10, 10)
   )
 ```
-## Médicos generales
-```{r}
-#| fig-width: 10
-#| fig-height: 7
-
-avance_medicos_generales <- registros_completos %>% 
-  mutate(
-    revision_uas = str_to_lower(revision_uas),
-    revision_uas = str_squish(revision_uas),
-    revision_uas = tidyr::replace_na(revision_uas, ""),
-    
-    clave_puesto = str_to_title(str_to_lower(clave_puesto))
-  ) %>% 
-  filter(str_detect(cnpm, "^MG")) %>% 
-  group_by(clave_puesto) %>% 
-  summarise(
-    propuestas = n(),
-    aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
-    rechazados = sum(revision_uas == "no aprobado", na.rm = TRUE),
-    por_revisar = sum(revision_uas == "", na.rm = TRUE),
-    
-    pct_aprobacion = aprobados / propuestas,
-    pct_rechazados = rechazados / propuestas,
-    pct_por_revisar = por_revisar / propuestas,
-    
-    .groups = "drop"
-  ) %>% 
-  arrange(pct_aprobacion)
-
-ggplot(
-  avance_medicos_generales,
-  aes(
-    x = reorder(
-      str_wrap(clave_puesto, width = 35),
-      pct_aprobacion
-    )
-  )
-) +
-
-geom_col(
-  aes(y = 1),
-  fill = "#d9efe6",
-  width = 0.75
-) +
-
-geom_col(
-  aes(y = pct_aprobacion),
-  fill = "#1E5B4F",
-  width = 0.75
-) +
-
-geom_col(
-  aes(y = pct_rechazados),
-  fill = "#A02142",
-  width = 0.75
-) +
-  
-geom_text(
-  aes(
-    y = pct_rechazados / 2,
-    label = if_else(
-      rechazados > 0,
-      paste0(
-        percent(pct_rechazados, accuracy = 1),
-        "\n(", comma(rechazados), ")"
-      ),
-      ""
-    )
-  ),
-  color = "white",
-  size = 3.2,
-  fontface = "bold"
-) +
-
-geom_text(
-  aes(
-    y = pct_rechazados + (pct_aprobacion / 2),
-    label = if_else(
-      aprobados > 0,
-      paste0(
-        percent(pct_aprobacion, accuracy = 1),
-        "\n(",
-        comma(aprobados),
-        "/",
-        comma(propuestas),
-        ")"
-      ),
-      ""
-    )
-  ),
-  color = "white",
-  size = 3.2,
-  fontface = "bold"
-) +
-
-geom_text(
-  aes(
-    y = pct_rechazados + pct_aprobacion + (pct_por_revisar / 2),
-    label = if_else(
-      por_revisar > 0,
-      paste0(
-        percent(pct_por_revisar, accuracy = 1),
-        "\n(",
-        comma(por_revisar),
-        ")"
-      ),
-      ""
-    )
-  ),
-  color = "#263238",
-  size = 3.2,
-  fontface = "bold"
-) +
-
-geom_text(
-  aes(
-    y = 1.03,
-    label = paste0("Total: ", comma(propuestas))
-  ),
-  hjust = 0,
-  size = 3.5
-) +
-
-coord_flip(clip = "off") +
-
-scale_y_continuous(
-  labels = percent,
-  limits = c(0, 1.12),
-  breaks = seq(0, 1, 0.25),
-  expand = expansion(mult = c(0, 0))
-) +
-
-labs(
-  title = "",
-  subtitle = "Porcentaje de aprobación UAS de médicos generales",
-  x = NULL,
-  y = "Aprobados / propuestas completas"
-) +
-
-theme_minimal() +
-
-theme(
-  plot.subtitle = element_text(
-    size = 12,
-    face = "bold"
-  ),
-  
-  axis.text.y = element_text(size = 11),
-  
-  axis.text.x = element_text(size = 11),
-  
-  axis.title.x = element_text(size = 13),
-  
-  panel.grid.major.y = element_blank(),
-  
-  plot.margin = margin(10, 55, 10, 10)
-)
-```
-
 ## Médicos especialistas
 
 ```{r}
@@ -1197,6 +896,147 @@ DT::datatable(
   rownames = FALSE
 )
 ```
+
+## Avance de registros completos 
+<details open>
+<summary><b>Registros completos por estado</b></summary>
+
+```{r}
+#| fig-width: 9
+#| fig-height: 7
+
+ggplot(
+  avance_estado,
+  aes(
+    x = reorder(estado, avance),
+    y = avance
+  )
+) +
+  
+  geom_col(
+    fill = "#d9efe6",
+    width = 0.75
+  ) +
+  
+  geom_col(
+    aes(
+      y = dplyr::if_else(
+        total_registros == 0,
+        0,
+        rechazados / total_registros
+      )
+    ),
+    fill = "#A02142",
+    width = 0.75
+  ) +
+  
+  geom_col(
+    aes(
+      y = dplyr::if_else(
+        total_registros == 0,
+        0,
+        aprobados / total_registros
+      )
+    ),
+    fill = "#1E5B4F",
+    width = 0.75
+  ) +
+  
+  geom_text(
+    aes(label = etiqueta_avance),
+    hjust = -0.05,
+    size = 3.1
+  ) +
+  
+  geom_text(
+  aes(
+    y = dplyr::if_else(
+      total_registros == 0,
+      0,
+      rechazados / total_registros
+    ),
+    label = dplyr::if_else(
+      rechazados > 0,
+      comma(rechazados),
+      ""
+    )
+  ),
+  hjust = 1.1,
+  color = "white",
+  size = 2.7,
+  fontface = "bold"
+) +
+  
+  geom_text(
+  aes(
+    y = dplyr::if_else(
+      total_registros == 0,
+      0,
+      aprobados / total_registros
+    ),
+    label = dplyr::if_else(
+      aprobados > 0,
+      comma(aprobados),
+      ""
+    )
+  ),
+  hjust = 1.1,
+  color = "white",
+  size = 2.7,
+  fontface = "bold"
+) +
+  
+  coord_flip() +
+  
+scale_y_continuous(
+  labels = \(x) percent(x, accuracy = 1),
+  limits = c(0, 1.18)
+)+
+  
+labs(
+  title = "",
+  caption = paste0(
+    "<span style='color:#d9efe6;'>■</span> Registros completos&nbsp;&nbsp;&nbsp;",
+    "<span style='color:#1E5B4F;'>■</span> Candidatos aprobados UAS&nbsp;&nbsp;&nbsp;",
+    "<span style='color:#A02142;'>■</span> Candidatos no aprobados UAS"
+  ),
+  x = NULL,
+  y = "Avance"
+) +
+  
+  theme_minimal() +
+  
+theme(
+  plot.title = element_text(
+    face = "bold",
+    size = 18
+  ),
+  
+  plot.subtitle = element_text(
+    size = 12
+  ),
+  
+  axis.text.y = element_text(
+    size = 12
+  ),
+  
+  axis.text.x = element_text(
+    size = 11
+  ),
+  
+  axis.title.x = element_text(
+    size = 13
+  ),
+plot.caption = ggtext::element_markdown(
+  size = 11,
+  hjust = 0,
+  margin = margin(t = 15)
+),
+  
+  panel.grid.major.y = element_blank()
+)
+```
+</details>
 
 ## Totales
 
