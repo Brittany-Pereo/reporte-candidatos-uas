@@ -875,28 +875,24 @@ tabla_unidades <- tabla_unidades %>%
     total_aprobados = aprobados_med_especi + aprobados_med_gen + aprobados_enf
   ) %>% 
   arrange(desc(total_propuestas))
+```
 
-tabla_unidades_final <- tabla_unidades %>% 
+::: {.panel-tabset}
+
+## Médicos generales
+
+```{r}
+tabla_med_gen <- tabla_unidades %>% 
   select(
     Estado = estado,
     CLUES = clues,
     `Unidad médica` = unidad_medica,
-    
-    `Med. especialistas propuestas` = propuestas_med_especi,
-    `Med. especialistas aprobados` = aprobados_med_especi,
-    
-    `Med. generales propuestas` = propuestas_med_gen,
-    `Med. generales aprobados` = aprobados_med_gen,
-    
-    `Enfermería propuestas` = propuestas_enf,
-    `Enfermería aprobados` = aprobados_enf,
-    
-    `Total propuestas` = total_propuestas,
-    `Total aprobados` = total_aprobados
+    `Médicos generales propuestos` = propuestas_med_gen,
+    `Médicos generales aprobados` = aprobados_med_gen
   )
 
 DT::datatable(
-  tabla_unidades_final,
+  tabla_med_gen,
   filter = "top",
   width = "100%",
   options = list(
@@ -904,11 +900,84 @@ DT::datatable(
     autoWidth = TRUE,
     scrollX = TRUE
   ),
-  rownames = FALSE,
-  caption = htmltools::tags$caption(
-    style = 'caption-side: top; text-align: left; font-weight: bold;',
-    'Unidades médicas ordenadas por número de propuestas'
-  )
+  rownames = FALSE
 )
+```
 
+## Médicos especialistas
+
+```{r}
+tabla_med_especi <- tabla_unidades %>% 
+  select(
+    Estado = estado,
+    CLUES = clues,
+    `Unidad médica` = unidad_medica,
+    `Médicos especialistas propuestos` = propuestas_med_especi,
+    `Médicos especialistas aprobados` = aprobados_med_especi
+  )
+
+DT::datatable(
+  tabla_med_especi,
+  filter = "top",
+  width = "100%",
+  options = list(
+    pageLength = 10,
+    autoWidth = TRUE,
+    scrollX = TRUE
+  ),
+  rownames = FALSE
+)
+```
+
+## Enfermería
+
+```{r}
+tabla_enf <- tabla_unidades %>% 
+  select(
+    Estado = estado,
+    CLUES = clues,
+    `Unidad médica` = unidad_medica,
+    `Enfermería propuestas` = propuestas_enf,
+    `Enfermería aprobadas` = aprobados_enf
+  )
+
+DT::datatable(
+  tabla_enf,
+  filter = "top",
+  width = "100%",
+  options = list(
+    pageLength = 10,
+    autoWidth = TRUE,
+    scrollX = TRUE
+  ),
+  rownames = FALSE
+)
+```
+
+## Totales
+
+```{r}
+tabla_totales <- tabla_unidades %>% 
+  select(
+    Estado = estado,
+    CLUES = clues,
+    `Unidad médica` = unidad_medica,
+    `Total propuestas` = total_propuestas,
+    `Total aprobados` = total_aprobados
+  )
+
+DT::datatable(
+  tabla_totales,
+  filter = "top",
+  width = "100%",
+  options = list(
+    pageLength = 10,
+    autoWidth = TRUE,
+    scrollX = TRUE
+  ),
+  rownames = FALSE
+)
+```
+
+:::
 ```
