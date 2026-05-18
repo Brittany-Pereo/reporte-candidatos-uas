@@ -600,28 +600,44 @@ plot.caption = ggtext::element_markdown(
 </details>
 
 ## Registros aprobados por clave de puesto
-## Avance de registros completos por estado
+
 <details open>
 <summary><b>Aprobados por clave de puesto</b></summary>
+
+::: {.panel-tabset}
+
+## Global
 
 ```{r}
 #| fig-width: 9
 #| fig-height: 6
 
+aprobados_global_categoria <- registros_completos %>% 
+  mutate(
+    revision_uas = str_to_lower(revision_uas),
+    revision_uas = str_squish(revision_uas),
+    categoria = case_when(
+      str_detect(cnpm, "^ME") ~ "Médicos especialistas",
+      str_detect(cnpm, "^MG") ~ "Médicos generales",
+      str_detect(cnpm, "^EN") ~ "Enfermería",
+      TRUE ~ "Otro"
+    )
+  ) %>% 
+  filter(
+    revision_uas == "aprobado",
+    categoria != "Otro"
+  ) %>% 
+  count(categoria, name = "aprobados") %>% 
+  arrange(aprobados)
+
 ggplot(
-  aprobados_clave_puesto,
+  aprobados_global_categoria,
   aes(
-    x = reorder(
-      stringr::str_wrap(clave_puesto, width = 35),
-      aprobados
-    ),
+    x = reorder(categoria, aprobados),
     y = aprobados
   )
 ) +
-  geom_col(
-    fill = "#1E5B4F",
-    width = 0.75
-  ) +
+  geom_col(fill = "#1E5B4F", width = 0.75) +
   geom_text(
     aes(label = comma(aprobados)),
     hjust = -0.15,
@@ -635,20 +651,186 @@ ggplot(
   ) +
   labs(
     title = "",
-    subtitle = "Candidatos con revisión UAS aprobada",
+    subtitle = "Candidatos aprobados UAS por categoría",
     x = NULL,
     y = ""
   ) +
   theme_minimal() +
   theme(
-    plot.title = element_text(face = "bold", size = 18),
     plot.subtitle = element_text(size = 12),
     axis.text.y = element_text(size = 12),
     axis.text.x = element_text(size = 11),
-    axis.title.x = element_text(size = 13),
     panel.grid.major.y = element_blank()
   )
 ```
+
+## Enfermería
+
+```{r}
+#| fig-width: 9
+#| fig-height: 6
+
+aprobados_enfermeria <- registros_completos %>% 
+  mutate(
+    revision_uas = str_to_lower(revision_uas),
+    revision_uas = str_squish(revision_uas)
+  ) %>% 
+  filter(
+    revision_uas == "aprobado",
+    str_detect(cnpm, "^EN")
+  ) %>% 
+  mutate(
+    clave_puesto = str_to_title(str_to_lower(clave_puesto))
+  ) %>% 
+  count(clave_puesto, name = "aprobados") %>% 
+  arrange(aprobados)
+
+ggplot(
+  aprobados_enfermeria,
+  aes(
+    x = reorder(str_wrap(clave_puesto, width = 35), aprobados),
+    y = aprobados
+  )
+) +
+  geom_col(fill = "#1E5B4F", width = 0.75) +
+  geom_text(
+    aes(label = comma(aprobados)),
+    hjust = -0.15,
+    size = 4,
+    fontface = "bold"
+  ) +
+  coord_flip() +
+  scale_y_continuous(
+    labels = comma,
+    expand = expansion(mult = c(0, 0.15))
+  ) +
+  labs(
+    title = "",
+    subtitle = "Candidatos aprobados UAS de enfermería",
+    x = NULL,
+    y = ""
+  ) +
+  theme_minimal() +
+  theme(
+    plot.subtitle = element_text(size = 12),
+    axis.text.y = element_text(size = 12),
+    axis.text.x = element_text(size = 11),
+    panel.grid.major.y = element_blank()
+  )
+```
+
+## Médicos generales
+
+```{r}
+#| fig-width: 9
+#| fig-height: 6
+
+aprobados_medicos_generales <- registros_completos %>% 
+  mutate(
+    revision_uas = str_to_lower(revision_uas),
+    revision_uas = str_squish(revision_uas)
+  ) %>% 
+  filter(
+    revision_uas == "aprobado",
+    str_detect(cnpm, "^MG")
+  ) %>% 
+  mutate(
+    clave_puesto = str_to_title(str_to_lower(clave_puesto))
+  ) %>% 
+  count(clave_puesto, name = "aprobados") %>% 
+  arrange(aprobados)
+
+ggplot(
+  aprobados_medicos_generales,
+  aes(
+    x = reorder(str_wrap(clave_puesto, width = 35), aprobados),
+    y = aprobados
+  )
+) +
+  geom_col(fill = "#1E5B4F", width = 0.75) +
+  geom_text(
+    aes(label = comma(aprobados)),
+    hjust = -0.15,
+    size = 4,
+    fontface = "bold"
+  ) +
+  coord_flip() +
+  scale_y_continuous(
+    labels = comma,
+    expand = expansion(mult = c(0, 0.15))
+  ) +
+  labs(
+    title = "",
+    subtitle = "Candidatos aprobados UAS de médicos generales",
+    x = NULL,
+    y = ""
+  ) +
+  theme_minimal() +
+  theme(
+    plot.subtitle = element_text(size = 12),
+    axis.text.y = element_text(size = 12),
+    axis.text.x = element_text(size = 11),
+    panel.grid.major.y = element_blank()
+  )
+```
+
+## Médicos especialistas
+
+```{r}
+#| fig-width: 9
+#| fig-height: 6
+
+aprobados_medicos_especialistas <- registros_completos %>% 
+  mutate(
+    revision_uas = str_to_lower(revision_uas),
+    revision_uas = str_squish(revision_uas)
+  ) %>% 
+  filter(
+    revision_uas == "aprobado",
+    str_detect(cnpm, "^ME")
+  ) %>% 
+  mutate(
+    clave_puesto = str_to_title(str_to_lower(clave_puesto))
+  ) %>% 
+  count(clave_puesto, name = "aprobados") %>% 
+  arrange(aprobados)
+
+ggplot(
+  aprobados_medicos_especialistas,
+  aes(
+    x = reorder(str_wrap(clave_puesto, width = 35), aprobados),
+    y = aprobados
+  )
+) +
+  geom_col(fill = "#1E5B4F", width = 0.75) +
+  geom_text(
+    aes(label = comma(aprobados)),
+    hjust = -0.15,
+    size = 4,
+    fontface = "bold"
+  ) +
+  coord_flip() +
+  scale_y_continuous(
+    labels = comma,
+    expand = expansion(mult = c(0, 0.15))
+  ) +
+  labs(
+    title = "",
+    subtitle = "Candidatos aprobados UAS de médicos especialistas",
+    x = NULL,
+    y = ""
+  ) +
+  theme_minimal() +
+  theme(
+    plot.subtitle = element_text(size = 12),
+    axis.text.y = element_text(size = 12),
+    axis.text.x = element_text(size = 11),
+    panel.grid.major.y = element_blank()
+  )
+```
+
+:::
+
 </details>
 ## Tabla de unidades médicas
 
