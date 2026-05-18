@@ -415,66 +415,6 @@ Los porcentajes de Aprobados, Rechazados y Por revisar se calculan respecto al t
 
 </details>
 
-## Distribución del registro
-
-<details open>
-<summary><b>Distribución de registros completos e incompletos</b></summary>
-
-```{r}
-#| fig-width: 7
-#| fig-height: 5
-
-ggplot(resumen_registros, aes(x = 2, y = total, fill = estatus)) +
-  
-  geom_col(
-    width = 1,
-    color = "white"
-  ) +
-  
-  coord_polar(theta = "y") +
-  
-  xlim(0.5, 2.5) +
-  
-  geom_text(
-    aes(label = etiqueta),
-    position = position_stack(vjust = 0.7),
-    size = 2.5,
-    color = "white",
-    fontface = "bold"
-  ) +
-  
-  scale_fill_manual(
-    values = c(
-      "Registros completos" = "#1E5B4F",
-      "Registros incompletos" = "#A02142"
-    )
-  ) +
-  
-  scale_y_continuous(labels = comma) +
-  
-  labs(
-    title = "",
-    fill = NULL
-  ) +
-  
-  theme_void() +
-  
-  theme(
-    plot.title = element_text(
-      hjust = 0.5,
-      face = "bold",
-      size = 15
-    ),
-    
-    legend.position = "bottom",
-    
-    legend.text = element_text(
-      size = 11
-    )
-  )
-```
-</details>
-
 ## Avance de registros completos 
 <details open>
 <summary><b>Registros completos por estado</b></summary>
