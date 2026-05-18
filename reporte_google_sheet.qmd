@@ -29,6 +29,7 @@ library(scales)
 library(knitr)
 library(stringr)
 library(DT)
+library(ggtext)
 
 url_sheet <- "https://docs.google.com/spreadsheets/d/1Axj6z0U1odyFcdDz7Rjdv2jOZgnh9yIxKAXiWzvXKW4/edit?gid=0#gid=0"
 
@@ -308,7 +309,6 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 ::: {.panel-tabset}
 
 ## Global
-
 <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; margin-top:18px;">
 
 <div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:24px; border-radius:16px;">
@@ -399,6 +399,10 @@ Los porcentajes de Aprobados, Rechazados y Por revisar se calculan respecto al t
 
 </details>
 ## Distribución del registro
+
+<details open>
+<summary><b>Distribución de registros completos e incompletos</b></summary>
+
 ```{r}
 #| fig-width: 7
 #| fig-height: 5
@@ -432,7 +436,7 @@ ggplot(resumen_registros, aes(x = 2, y = total, fill = estatus)) +
   scale_y_continuous(labels = comma) +
   
   labs(
-    title = "Distribución de registros completos e incompletos",
+    title = "",
     fill = NULL
   ) +
   
@@ -452,8 +456,11 @@ ggplot(resumen_registros, aes(x = 2, y = total, fill = estatus)) +
     )
   )
 ```
+</details>
 
-## Avance de registros por estado
+## Avance de registros completos por estado
+<details open>
+<summary><b>Avance de registros completos por estado</b></summary>
 
 ```{r}
 #| fig-width: 9
@@ -547,18 +554,16 @@ scale_y_continuous(
   limits = c(0, 1.18)
 )+
   
-  labs(
-    title = "Avance de registros completos por estado",
-    
-caption = paste0(
-  "■ Verde claro: registros completos   ",
-  "■ Verde: candidatos aprobados UAS   ",
-  "■ Rojo: candidatos no aprobados UAS"
-),
-    
-    x = NULL,
-    y = "Avance"
-  ) +
+labs(
+  title = "",
+  caption = paste0(
+    "<span style='color:#d9efe6;'>■</span> Registros completos&nbsp;&nbsp;&nbsp;",
+    "<span style='color:#1E5B4F;'>■</span> Candidatos aprobados UAS&nbsp;&nbsp;&nbsp;",
+    "<span style='color:#A02142;'>■</span> Candidatos no aprobados UAS"
+  ),
+  x = NULL,
+  y = "Avance"
+) +
   
   theme_minimal() +
   
@@ -592,7 +597,13 @@ theme(
   panel.grid.major.y = element_blank()
 )
 ```
+</details>
+
 ## Registros aprobados por clave de puesto
+## Avance de registros completos por estado
+<details open>
+<summary><b>Aprobados por clave de puesto</b></summary>
+
 ```{r}
 #| fig-width: 9
 #| fig-height: 6
@@ -623,7 +634,7 @@ ggplot(
     expand = expansion(mult = c(0, 0.15))
   ) +
   labs(
-    title = "Aprobados por clave de puesto",
+    title = "",
     subtitle = "Candidatos con revisión UAS aprobada",
     x = NULL,
     y = ""
@@ -638,6 +649,7 @@ ggplot(
     panel.grid.major.y = element_blank()
   )
 ```
+</details>
 ## Tabla de unidades médicas
 
 ```{r}
