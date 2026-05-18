@@ -609,13 +609,14 @@ plot.caption = ggtext::element_markdown(
 ## Global
 
 ```{r}
-#| fig-width: 9
+#| fig-width: 10
 #| fig-height: 6
 
-aprobados_global_categoria <- registros_completos %>% 
+avance_global_categoria <- registros_completos %>% 
   mutate(
     revision_uas = str_to_lower(revision_uas),
     revision_uas = str_squish(revision_uas),
+    revision_uas = tidyr::replace_na(revision_uas, ""),
     categoria = case_when(
       str_detect(cnpm, "^ME") ~ "Médicos especialistas",
       str_detect(cnpm, "^MG") ~ "Médicos generales",
@@ -629,73 +630,97 @@ aprobados_global_categoria <- registros_completos %>%
     propuestas = n(),
     aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
     rechazados = sum(revision_uas == "no aprobado", na.rm = TRUE),
+    por_revisar = sum(revision_uas == "", na.rm = TRUE),
     pct_aprobacion = aprobados / propuestas,
     pct_rechazados = rechazados / propuestas,
-    .groups = "drop") %>% 
+    pct_por_revisar = por_revisar / propuestas,
+    .groups = "drop"
+  ) %>% 
   arrange(pct_aprobacion)
 
 ggplot(
-  aprobados_global_categoria,
+  avance_global_categoria,
   aes(
-    x = reorder(categoria, pct_aprobacion),
-    y = 1
+    x = reorder(categoria, pct_aprobacion)
   )
 ) +
-
-geom_col(
-  fill = "#d9efe6",
-  width = 0.75
-) +
-
-geom_col(
-  aes(y = pct_aprobacion),
-  fill = "#1E5B4F",
-  width = 0.75
-) +
-  
-geom_col(
-  aes(y = pct_rechazados),
-  fill = "#A02142",
-  width = 0.75
-) +
-  
-geom_text(
-  aes(
-    y = pct_aprobacion,
-    label = paste0(
-      percent(pct_aprobacion, accuracy = 1),
-      " (", comma(aprobados), "/", comma(propuestas), ")"
-    )
-  ),
-  hjust = 1.1,
-  color = "white",
-  size = 3.7,
-  fontface = "bold"
-) +
-  
+  geom_col(
+    aes(y = 1),
+    fill = "#d9efe6",
+    width = 0.75
+  ) +
+  geom_col(
+    aes(y = pct_rechazados),
+    fill = "#A02142",
+    width = 0.75
+  ) +
+  geom_col(
+    aes(y = pct_aprobacion),
+    fill = "#1E5B4F",
+    width = 0.75
+  ) +
   geom_text(
-  aes(
-    y = pct_rechazados,
-    label = if_else(
-      rechazados > 0,
-      paste0(
-        percent(pct_rechazados, accuracy = 1),
-        " (", comma(rechazados), ")"
-      ),
-      ""
-    )
-  ),
-  hjust = 1.1,
-  color = "white",
-  size = 3.2,
-  fontface = "bold"
-) +
-  
-  coord_flip() +
+    aes(
+      y = pct_rechazados / 2,
+      label = if_else(
+        rechazados > 0,
+        paste0(
+          percent(pct_rechazados, accuracy = 1),
+          "\n(", comma(rechazados), ")"
+        ),
+        ""
+      )
+    ),
+    color = "white",
+    size = 3.5,
+    fontface = "bold"
+  ) +
+  geom_text(
+    aes(
+      y = pct_rechazados + (pct_aprobacion / 2),
+      label = if_else(
+        aprobados > 0,
+        paste0(
+          percent(pct_aprobacion, accuracy = 1),
+          "\n(", comma(aprobados), "/", comma(propuestas), ")"
+        ),
+        ""
+      )
+    ),
+    color = "white",
+    size = 3.5,
+    fontface = "bold"
+  ) +
+  geom_text(
+    aes(
+      y = pct_rechazados + pct_aprobacion + (pct_por_revisar / 2),
+      label = if_else(
+        por_revisar > 0,
+        paste0(
+          percent(pct_por_revisar, accuracy = 1),
+          "\n(", comma(por_revisar), ")"
+        ),
+        ""
+      )
+    ),
+    color = "#263238",
+    size = 3.5,
+    fontface = "bold"
+  ) +
+  geom_text(
+    aes(
+      y = 1.03,
+      label = paste0("Total: ", comma(propuestas))
+    ),
+    hjust = 0,
+    size = 4
+  ) +
+  coord_flip(clip = "off") +
   scale_y_continuous(
     labels = percent,
-    limits = c(0, 1.15),
-    expand = expansion(mult = c(0, 0.15))
+    limits = c(0, 1.12),
+    breaks = seq(0, 1, 0.25),
+    expand = expansion(mult = c(0, 0))
   ) +
   labs(
     title = "",
@@ -705,10 +730,12 @@ geom_text(
   ) +
   theme_minimal() +
   theme(
-    plot.subtitle = element_text(size = 12),
+    plot.subtitle = element_text(size = 12, face = "bold"),
     axis.text.y = element_text(size = 12),
     axis.text.x = element_text(size = 11),
-    panel.grid.major.y = element_blank()
+    axis.title.x = element_text(size = 13),
+    panel.grid.major.y = element_blank(),
+    plot.margin = margin(10, 55, 10, 10)
   )
 ```
 
