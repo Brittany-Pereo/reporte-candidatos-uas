@@ -338,7 +338,6 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 ::: {.panel-tabset}
 
 ## Global
-
 <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; margin-top:18px;">
 
 <div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:24px; border-radius:16px;">
@@ -361,87 +360,160 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 ## Médicos generales
 
 <div style="background:#f8fafc; border:1px solid #e5e7eb; padding:20px 24px; border-radius:18px; margin-top:18px; margin-bottom:18px;">
+
   <p style="margin:0; color:#6b7280; font-size:15px; font-weight:600;">
-  Total de médicos generales
+    Total de médicos generales
   </p>
-  <p style="font-size:38px; font-weight:800; color:#263238; margin:6px 0 0 0;">
-    `r comma(valor_resumen("med_gen", total))`
+
+  <p style="margin:8px 0 0 0; color:#263238; font-size:20px; font-weight:700;">
+    Total: `r comma(valor_resumen("med_gen", total))`
   </p>
+
 </div>
 
 <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:18px; margin-top:18px;">
 
 <div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:22px; border-radius:18px;">
-<p style="margin:0; color:#4b5563; font-size:16px; font-weight:700;">Aprobados UAS</p>
-<p style="font-size:36px; font-weight:800; color:#1E5B4F; margin:22px 0 0 0;">`r comma(valor_resumen("med_gen", aprobados))`</p>
+
+<p style="margin:0; color:#4b5563; font-size:16px; font-weight:700;">
+Aprobados UAS
+</p>
+
+<p style="font-size:36px; font-weight:800; color:#1E5B4F; margin:22px 0 0 0;">
+`r comma(valor_resumen("med_gen", aprobados))`
+</p>
+
 </div>
 
 <div style="background-color:#fffaf0; border:1px solid #f1d58a; padding:22px; border-radius:18px;">
-<p style="margin:0; color:#4b5563; font-size:16px; font-weight:700;">Por revisar UAS</p>
-<p style="font-size:36px; font-weight:800; color:#9A6B00; margin:22px 0 0 0;">`r comma(valor_resumen("med_gen", por_revisar))`</p>
+
+<p style="margin:0; color:#4b5563; font-size:16px; font-weight:700;">
+Por revisar UAS
+</p>
+
+<p style="font-size:36px; font-weight:800; color:#9A6B00; margin:22px 0 0 0;">
+`r comma(valor_resumen("med_gen", por_revisar))`
+</p>
+
 </div>
 
 <div style="background-color:#fff6f7; border:1px solid #f0cfd6; padding:22px; border-radius:18px;">
-<p style="margin:0; color:#4b5563; font-size:16px; font-weight:700;">Rechazados UAS</p>
-<p style="font-size:36px; font-weight:800; color:#A02142; margin:22px 0 0 0;">`r comma(valor_resumen("med_gen", rechazados))`</p>
-</div>
+
+<p style="margin:0; color:#4b5563; font-size:16px; font-weight:700;">
+Rechazados UAS
+</p>
+
+<p style="font-size:36px; font-weight:800; color:#A02142; margin:22px 0 0 0;">
+`r comma(valor_resumen("med_gen", rechazados))`
+</p>
 
 </div>
 
+</div>
 ## Médicos especialistas
+
 <div style="background:#f8fafc; border:1px solid #e5e7eb; padding:20px 24px; border-radius:18px; margin-top:18px; margin-bottom:18px;">
+
   <p style="margin:0; color:#6b7280; font-size:15px; font-weight:600;">
     Total de médicos especialistas
   </p>
-  <p style="font-size:38px; font-weight:800; color:#263238; margin:6px 0 0 0;">
-    `r comma(valor_resumen("med_especi", total))`
+
+  <p style="margin:8px 0 0 0; color:#263238; font-size:20px; font-weight:700;">
+    Total: `r comma(valor_resumen("med_especi", total))`
   </p>
+
 </div>
 
 <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:18px; margin-top:18px;">
 
 <div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:22px; border-radius:18px;">
-<p style="margin:0; color:#4b5563; font-size:16px; font-weight:700;">Aprobados UAS</p>
-<p style="font-size:36px; font-weight:800; color:#1E5B4F; margin:22px 0 0 0;">`r comma(valor_resumen("med_especi", aprobados))`</p>
+
+<p style="margin:0; color:#4b5563; font-size:16px; font-weight:700;">
+Aprobados UAS
+</p>
+
+<p style="font-size:36px; font-weight:800; color:#1E5B4F; margin:22px 0 0 0;">
+`r comma(valor_resumen("med_especi", aprobados))`
+</p>
+
 </div>
 
 <div style="background-color:#fffaf0; border:1px solid #f1d58a; padding:22px; border-radius:18px;">
-<p style="margin:0; color:#4b5563; font-size:16px; font-weight:700;">Por revisar UAS</p>
-<p style="font-size:36px; font-weight:800; color:#9A6B00; margin:22px 0 0 0;">`r comma(valor_resumen("med_especi", por_revisar))`</p>
+
+<p style="margin:0; color:#4b5563; font-size:16px; font-weight:700;">
+Por revisar UAS
+</p>
+
+<p style="font-size:36px; font-weight:800; color:#9A6B00; margin:22px 0 0 0;">
+`r comma(valor_resumen("med_especi", por_revisar))`
+</p>
+
 </div>
 
 <div style="background-color:#fff6f7; border:1px solid #f0cfd6; padding:22px; border-radius:18px;">
-<p style="margin:0; color:#4b5563; font-size:16px; font-weight:700;">Rechazados UAS</p>
-<p style="font-size:36px; font-weight:800; color:#A02142; margin:22px 0 0 0;">`r comma(valor_resumen("med_especi", rechazados))`</p>
-</div>
+
+<p style="margin:0; color:#4b5563; font-size:16px; font-weight:700;">
+Rechazados UAS
+</p>
+
+<p style="font-size:36px; font-weight:800; color:#A02142; margin:22px 0 0 0;">
+`r comma(valor_resumen("med_especi", rechazados))`
+</p>
 
 </div>
 
+</div>
 ## Enfermería
+## Enfermería
+
 <div style="background:#f8fafc; border:1px solid #e5e7eb; padding:20px 24px; border-radius:18px; margin-top:18px; margin-bottom:18px;">
+
   <p style="margin:0; color:#6b7280; font-size:15px; font-weight:600;">
     Total de enfermería
   </p>
-  <p style="font-size:38px; font-weight:800; color:#263238; margin:6px 0 0 0;">
-    `r comma(valor_resumen("enf", total))`
+
+  <p style="margin:8px 0 0 0; color:#263238; font-size:20px; font-weight:700;">
+    Total: `r comma(valor_resumen("enf", total))`
   </p>
+
 </div>
 
 <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:18px; margin-top:18px;">
 
 <div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:22px; border-radius:18px;">
-<p style="margin:0; color:#4b5563; font-size:16px; font-weight:700;">Aprobados UAS</p>
-<p style="font-size:36px; font-weight:800; color:#1E5B4F; margin:22px 0 0 0;">`r comma(valor_resumen("enf", aprobados))`</p>
+
+<p style="margin:0; color:#4b5563; font-size:16px; font-weight:700;">
+Aprobados UAS
+</p>
+
+<p style="font-size:36px; font-weight:800; color:#1E5B4F; margin:22px 0 0 0;">
+`r comma(valor_resumen("enf", aprobados))`
+</p>
+
 </div>
 
 <div style="background-color:#fffaf0; border:1px solid #f1d58a; padding:22px; border-radius:18px;">
-<p style="margin:0; color:#4b5563; font-size:16px; font-weight:700;">Por revisar UAS</p>
-<p style="font-size:36px; font-weight:800; color:#9A6B00; margin:22px 0 0 0;">`r comma(valor_resumen("enf", por_revisar))`</p>
+
+<p style="margin:0; color:#4b5563; font-size:16px; font-weight:700;">
+Por revisar UAS
+</p>
+
+<p style="font-size:36px; font-weight:800; color:#9A6B00; margin:22px 0 0 0;">
+`r comma(valor_resumen("enf", por_revisar))`
+</p>
+
 </div>
 
 <div style="background-color:#fff6f7; border:1px solid #f0cfd6; padding:22px; border-radius:18px;">
-<p style="margin:0; color:#4b5563; font-size:16px; font-weight:700;">Rechazados UAS</p>
-<p style="font-size:36px; font-weight:800; color:#A02142; margin:22px 0 0 0;">`r comma(valor_resumen("enf", rechazados))`</p>
+
+<p style="margin:0; color:#4b5563; font-size:16px; font-weight:700;">
+Rechazados UAS
+</p>
+
+<p style="font-size:36px; font-weight:800; color:#A02142; margin:22px 0 0 0;">
+`r comma(valor_resumen("enf", rechazados))`
+</p>
+
 </div>
 
 </div>
