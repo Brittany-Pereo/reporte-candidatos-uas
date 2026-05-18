@@ -572,6 +572,7 @@ tabla_unidades_final <- tabla_unidades %>%
 DT::datatable(
   tabla_unidades_final,
   filter = "top",
+  width = "100%",
   options = list(
     pageLength = 10,
     autoWidth = TRUE,
@@ -583,4 +584,5 @@ DT::datatable(
     'Unidades médicas ordenadas por número de propuestas'
   )
 )
+
 ```
