@@ -588,7 +588,7 @@ theme(
   axis.title.x = element_text(
     size = 13
   ),
-  plot.caption = element_text(
+plot.caption = ggtext::element_markdown(
   size = 11,
   hjust = 0,
   margin = margin(t = 15)
