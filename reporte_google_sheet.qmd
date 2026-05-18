@@ -511,6 +511,9 @@ ggplot(
 ```{r}
 tabla_unidades <- registros_completos %>% 
   mutate(
+    revision_uas = stringr::str_to_lower(revision_uas),
+    revision_uas = stringr::str_squish(revision_uas),
+    
     categoria = case_when(
       str_detect(cnpm, "^ME") ~ "med_especi",
       str_detect(cnpm, "^MG") ~ "med_gen",
@@ -519,20 +522,31 @@ tabla_unidades <- registros_completos %>%
     )
   ) %>% 
   filter(categoria != "otro") %>% 
-  count(estado, clues, unidad_medica, categoria) %>% 
+  group_by(estado, clues, unidad_medica, categoria) %>% 
+  summarise(
+    propuestas = n(),
+    aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
+    .groups = "drop"
+  ) %>% 
   tidyr::pivot_wider(
     names_from = categoria,
-    values_from = n,
+    values_from = c(propuestas, aprobados),
     values_fill = 0
   )
 
-if (!"med_especi" %in% names(tabla_unidades)) tabla_unidades$med_especi <- 0
-if (!"med_gen" %in% names(tabla_unidades)) tabla_unidades$med_gen <- 0
-if (!"enf" %in% names(tabla_unidades)) tabla_unidades$enf <- 0
+columnas_necesarias <- c(
+  "propuestas_med_especi", "propuestas_med_gen", "propuestas_enf",
+  "aprobados_med_especi", "aprobados_med_gen", "aprobados_enf"
+)
+
+for (col in columnas_necesarias) {
+  if (!col %in% names(tabla_unidades)) tabla_unidades[[col]] <- 0
+}
 
 tabla_unidades <- tabla_unidades %>% 
   mutate(
-    total_propuestas = med_especi + med_gen + enf
+    total_propuestas = propuestas_med_especi + propuestas_med_gen + propuestas_enf,
+    total_aprobados = aprobados_med_especi + aprobados_med_gen + aprobados_enf
   ) %>% 
   arrange(desc(total_propuestas))
 
@@ -541,10 +555,18 @@ tabla_unidades_final <- tabla_unidades %>%
     Estado = estado,
     CLUES = clues,
     `Unidad médica` = unidad_medica,
-    `Med. especialistas` = med_especi,
-    `Med. generales` = med_gen,
-    Enfermería = enf,
-    Total = total_propuestas
+    
+    `Med. especialistas propuestas` = propuestas_med_especi,
+    `Med. especialistas aprobados` = aprobados_med_especi,
+    
+    `Med. generales propuestas` = propuestas_med_gen,
+    `Med. generales aprobados` = aprobados_med_gen,
+    
+    `Enfermería propuestas` = propuestas_enf,
+    `Enfermería aprobados` = aprobados_enf,
+    
+    `Total propuestas` = total_propuestas,
+    `Total aprobados` = total_aprobados
   )
 
 DT::datatable(
