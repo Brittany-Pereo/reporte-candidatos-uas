@@ -278,7 +278,7 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 ## Resumen general
 
 <details open>
-<summary><b></b></summary>
+<summary><b>Nivel global</b></summary>
 
 <div style="display:grid; gap:18px; margin-bottom:28px;">
 
@@ -458,9 +458,9 @@ ggplot(resumen_registros, aes(x = 2, y = total, fill = estatus)) +
 ```
 </details>
 
-## Avance de registros completos por estado
+## Avance de registros completos 
 <details open>
-<summary><b>Avance de registros completos por estado</b></summary>
+<summary><b>Registros completos por estado</b></summary>
 
 ```{r}
 #| fig-width: 9
