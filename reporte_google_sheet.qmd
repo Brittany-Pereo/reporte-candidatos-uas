@@ -369,14 +369,10 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 </div>
 </div>
 
-:::
-
 <div style="background-color:#eaf4ff; color:#155a9c; padding:14px 18px; border-radius:12px;">
 Los porcentajes de Aprobados, Rechazados y Por revisar se calculan respecto al total de registros y respecto a los registros completos.
 </div>
 </div>
-
-</details>
 ## Enfermería
 
 <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; margin-top:18px;">
@@ -397,6 +393,8 @@ Los porcentajes de Aprobados, Rechazados y Por revisar se calculan respecto al t
 </div>
 
 </div>
+:::
+</details>
 
 ## Distribución del registro
 
@@ -809,9 +807,7 @@ scale_y_continuous(
   )
 ```
 
-:::
 
-</details>
 ## Enfermería
 
 ```{r}
@@ -873,7 +869,9 @@ scale_y_continuous(
     panel.grid.major.y = element_blank()
   )
 ```
+:::
 
+</details>
 ## Tabla de unidades médicas
 
 ```{r}
