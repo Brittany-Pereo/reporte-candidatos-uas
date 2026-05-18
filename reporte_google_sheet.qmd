@@ -400,18 +400,6 @@ Rechazados UAS
 </div>
 ## Médicos especialistas
 
-<div style="background:#f8fafc; border:1px solid #e5e7eb; padding:20px 24px; border-radius:18px; margin-top:18px; margin-bottom:18px;">
-
-  <p style="margin:0; color:#6b7280; font-size:15px; font-weight:600;">
-    Total de médicos especialistas
-  </p>
-
-  <p style="margin:8px 0 0 0; color:#263238; font-size:20px; font-weight:700;">
-    Total: `r comma(valor_resumen("med_especi", total))`
-  </p>
-
-</div>
-
 <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:18px; margin-top:18px;">
 
 <div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:22px; border-radius:18px;">
@@ -453,18 +441,6 @@ Rechazados UAS
 </div>
 
 ## Enfermería
-
-<div style="background:#f8fafc; border:1px solid #e5e7eb; padding:20px 24px; border-radius:18px; margin-top:18px; margin-bottom:18px;">
-
-  <p style="margin:0; color:#6b7280; font-size:15px; font-weight:600;">
-    Total de enfermería
-  </p>
-
-  <p style="margin:8px 0 0 0; color:#263238; font-size:20px; font-weight:700;">
-    Total: `r comma(valor_resumen("enf", total))`
-  </p>
-
-</div>
 
 <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:18px; margin-top:18px;">
 
