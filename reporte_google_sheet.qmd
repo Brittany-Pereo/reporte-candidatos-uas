@@ -682,36 +682,43 @@ ggplot(
 aprobados_enfermeria <- registros_completos %>% 
   mutate(
     revision_uas = str_to_lower(revision_uas),
-    revision_uas = str_squish(revision_uas)
-  ) %>% 
-  filter(
-    revision_uas == "aprobado",
-    str_detect(cnpm, "^EN")
-  ) %>% 
-  mutate(
+    revision_uas = str_squish(revision_uas),
     clave_puesto = str_to_title(str_to_lower(clave_puesto))
   ) %>% 
-  count(clave_puesto, name = "aprobados") %>% 
-  arrange(aprobados)
+  filter(str_detect(cnpm, "^EN")) %>% 
+  group_by(clave_puesto) %>% 
+  summarise(
+    propuestas = n(),
+    aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
+    pct_aprobacion = aprobados / propuestas,
+    .groups = "drop"
+  ) %>% 
+  arrange(pct_aprobacion)
 
 ggplot(
   aprobados_enfermeria,
   aes(
-    x = reorder(str_wrap(clave_puesto, width = 35), aprobados),
-    y = aprobados
+    x = reorder(str_wrap(clave_puesto, width = 35), pct_aprobacion),
+    y = pct_aprobacion
   )
 ) +
   geom_col(fill = "#1E5B4F", width = 0.75) +
-  geom_text(
-    aes(label = comma(aprobados)),
-    hjust = -0.15,
-    size = 4,
-    fontface = "bold"
-  ) +
+geom_text(
+  aes(
+    label = paste0(
+      percent(pct_aprobacion, accuracy = 1),
+      " (", comma(aprobados), "/", comma(propuestas), ")"
+    )
+  ),
+  hjust = -0.05,
+  size = 4,
+  fontface = "bold"
+) +
   coord_flip() +
-  scale_y_continuous(
-    labels = comma,
-    expand = expansion(mult = c(0, 0.15))
+scale_y_continuous(
+  labels = percent,
+  limits = c(0, 1),
+  expand = expansion(mult = c(0, 0.15))
   ) +
   labs(
     title = "",
@@ -746,27 +753,39 @@ aprobados_medicos_generales <- registros_completos %>%
   mutate(
     clave_puesto = str_to_title(str_to_lower(clave_puesto))
   ) %>% 
-  count(clave_puesto, name = "aprobados") %>% 
-  arrange(aprobados)
+  group_by(clave_puesto) %>% 
+  summarise(
+    propuestas = n(),
+    aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
+    pct_aprobacion = aprobados / propuestas,
+    .groups = "drop"
+  ) %>% 
+  arrange(pct_aprobacion)
 
 ggplot(
   aprobados_medicos_generales,
   aes(
-    x = reorder(str_wrap(clave_puesto, width = 35), aprobados),
-    y = aprobados
+    x = reorder(str_wrap(clave_puesto, width = 35), pct_aprobacion),
+    y = pct_aprobacion
   )
 ) +
   geom_col(fill = "#1E5B4F", width = 0.75) +
-  geom_text(
-    aes(label = comma(aprobados)),
-    hjust = -0.15,
-    size = 4,
-    fontface = "bold"
-  ) +
+geom_text(
+  aes(
+    label = paste0(
+      percent(pct_aprobacion, accuracy = 1),
+      " (", comma(aprobados), "/", comma(propuestas), ")"
+    )
+  ),
+  hjust = -0.05,
+  size = 4,
+  fontface = "bold"
+) +
   coord_flip() +
-  scale_y_continuous(
-    labels = comma,
-    expand = expansion(mult = c(0, 0.15))
+scale_y_continuous(
+  labels = percent,
+  limits = c(0, 1),
+  expand = expansion(mult = c(0, 0.15))
   ) +
   labs(
     title = "",
@@ -801,28 +820,42 @@ aprobados_medicos_especialistas <- registros_completos %>%
   mutate(
     clave_puesto = str_to_title(str_to_lower(clave_puesto))
   ) %>% 
-  count(clave_puesto, name = "aprobados") %>% 
-  arrange(aprobados)
+  group_by(clave_puesto) %>% 
+  summarise(
+    propuestas = n(),
+    aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
+    pct_aprobacion = aprobados / propuestas,
+    .groups = "drop"
+  ) %>% 
+  arrange(pct_aprobacion)
 
 ggplot(
   aprobados_medicos_especialistas,
   aes(
-    x = reorder(str_wrap(clave_puesto, width = 35), aprobados),
-    y = aprobados
+    x = reorder(str_wrap(clave_puesto, width = 35), pct_aprobacion),
+    y = pct_aprobacion
   )
 ) +
   geom_col(fill = "#1E5B4F", width = 0.75) +
-  geom_text(
-    aes(label = comma(aprobados)),
-    hjust = -0.15,
-    size = 4,
-    fontface = "bold"
-  ) +
+geom_text(
+  aes(
+    label = paste0(
+      percent(pct_aprobacion, accuracy = 1),
+      " (", comma(aprobados), "/", comma(propuestas), ")"
+    )
+  ),
+  hjust = -0.05,
+  size = 4,
+  fontface = "bold"
+) +
   coord_flip() +
-  scale_y_continuous(
-    labels = comma,
-    expand = expansion(mult = c(0, 0.15))
+  
+scale_y_continuous(
+  labels = percent,
+  limits = c(0, 1),
+  expand = expansion(mult = c(0, 0.15))
   ) +
+  
   labs(
     title = "",
     subtitle = "Candidatos aprobados UAS de médicos especialistas",
@@ -967,6 +1000,7 @@ DT::datatable(
 
 ```{r}
 tabla_totales <- tabla_unidades %>% 
+  mutate(unidad_medica = stringr::str_to_title(unidad_medica)) %>% 
   select(
     Estado = estado,
     CLUES = clues,
