@@ -623,37 +623,46 @@ aprobados_global_categoria <- registros_completos %>%
       TRUE ~ "Otro"
     )
   ) %>% 
-  filter(
-    revision_uas == "aprobado",
-    categoria != "Otro"
+  filter(categoria != "Otro") %>% 
+  group_by(categoria) %>% 
+  summarise(
+    propuestas = n(),
+    aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
+    pct_aprobacion = aprobados / propuestas,
+    .groups = "drop"
   ) %>% 
-  count(categoria, name = "aprobados") %>% 
-  arrange(aprobados)
+  arrange(pct_aprobacion)
 
 ggplot(
   aprobados_global_categoria,
   aes(
-    x = reorder(categoria, aprobados),
-    y = aprobados
+    x = reorder(categoria, pct_aprobacion),
+    y = pct_aprobacion
   )
 ) +
   geom_col(fill = "#1E5B4F", width = 0.75) +
   geom_text(
-    aes(label = comma(aprobados)),
-    hjust = -0.15,
+    aes(
+      label = paste0(
+        percent(pct_aprobacion, accuracy = 1),
+        " (", comma(aprobados), "/", comma(propuestas), ")"
+      )
+    ),
+    hjust = -0.05,
     size = 4,
     fontface = "bold"
   ) +
   coord_flip() +
   scale_y_continuous(
-    labels = comma,
+    labels = percent,
+    limits = c(0, 1),
     expand = expansion(mult = c(0, 0.15))
   ) +
   labs(
     title = "",
-    subtitle = "Candidatos aprobados UAS por categoría",
+    subtitle = "Porcentaje de aprobación UAS por categoría",
     x = NULL,
-    y = ""
+    y = "Aprobados / propuestas completas"
   ) +
   theme_minimal() +
   theme(
