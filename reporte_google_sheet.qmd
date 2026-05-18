@@ -850,127 +850,6 @@ ggplot(
 
 
 
-## Tabla de unidades médicas
-
-```{r}
-tabla_unidades <- registros_completos %>% 
-  mutate(
-    revision_uas = stringr::str_to_lower(revision_uas),
-    revision_uas = stringr::str_squish(revision_uas),
-    
-    categoria = case_when(
-      str_detect(cnpm, "^ME") ~ "med_especi",
-      str_detect(cnpm, "^MG") ~ "med_gen",
-      str_detect(cnpm, "^EN") ~ "enf",
-      TRUE ~ "otro"
-    )
-  ) %>% 
-  filter(categoria != "otro") %>% 
-  group_by(estado, clues, unidad_medica, categoria) %>% 
-  summarise(
-    propuestas = n(),
-    aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
-    .groups = "drop"
-  ) %>% 
-  tidyr::pivot_wider(
-    names_from = categoria,
-    values_from = c(propuestas, aprobados),
-    values_fill = 0
-  )
-
-columnas_necesarias <- c(
-  "propuestas_med_especi", "propuestas_med_gen", "propuestas_enf",
-  "aprobados_med_especi", "aprobados_med_gen", "aprobados_enf"
-)
-
-for (col in columnas_necesarias) {
-  if (!col %in% names(tabla_unidades)) tabla_unidades[[col]] <- 0
-}
-
-tabla_unidades <- tabla_unidades %>% 
-  mutate(
-    total_propuestas = propuestas_med_especi + propuestas_med_gen + propuestas_enf,
-    total_aprobados = aprobados_med_especi + aprobados_med_gen + aprobados_enf
-  ) %>% 
-  arrange(desc(total_propuestas))
-```
-
-::: {.panel-tabset}
-
-## Médicos generales
-
-```{r}
-tabla_med_gen <- tabla_unidades %>% 
-  select(
-    Estado = estado,
-    CLUES = clues,
-    `Unidad médica` = unidad_medica,
-    `Médicos generales propuestos` = propuestas_med_gen,
-    `Médicos generales aprobados` = aprobados_med_gen
-  )
-
-DT::datatable(
-  tabla_med_gen,
-  filter = "top",
-  width = "100%",
-  options = list(
-    pageLength = 10,
-    autoWidth = TRUE,
-    scrollX = TRUE
-  ),
-  rownames = FALSE
-)
-```
-
-## Médicos especialistas
-
-```{r}
-tabla_med_especi <- tabla_unidades %>% 
-  select(
-    Estado = estado,
-    CLUES = clues,
-    `Unidad médica` = unidad_medica,
-    `Médicos especialistas propuestos` = propuestas_med_especi,
-    `Médicos especialistas aprobados` = aprobados_med_especi
-  )
-
-DT::datatable(
-  tabla_med_especi,
-  filter = "top",
-  width = "100%",
-  options = list(
-    pageLength = 10,
-    autoWidth = TRUE,
-    scrollX = TRUE
-  ),
-  rownames = FALSE
-)
-```
-
-## Enfermería
-
-```{r}
-tabla_enf <- tabla_unidades %>% 
-  select(
-    Estado = estado,
-    CLUES = clues,
-    `Unidad médica` = unidad_medica,
-    `Enfermería propuestas` = propuestas_enf,
-    `Enfermería aprobadas` = aprobados_enf
-  )
-
-DT::datatable(
-  tabla_enf,
-  filter = "top",
-  width = "100%",
-  options = list(
-    pageLength = 10,
-    autoWidth = TRUE,
-    scrollX = TRUE
-  ),
-  rownames = FALSE
-)
-```
 
 ## Avance de registros completos 
 <details open>
@@ -1113,7 +992,54 @@ plot.caption = ggtext::element_markdown(
 ```
 </details>
 
-## Totales
+## Tabla de unidades médicas
+
+```{r}
+tabla_unidades <- registros_completos %>% 
+  mutate(
+    revision_uas = stringr::str_to_lower(revision_uas),
+    revision_uas = stringr::str_squish(revision_uas),
+    
+    categoria = case_when(
+      str_detect(cnpm, "^ME") ~ "med_especi",
+      str_detect(cnpm, "^MG") ~ "med_gen",
+      str_detect(cnpm, "^EN") ~ "enf",
+      TRUE ~ "otro"
+    )
+  ) %>% 
+  filter(categoria != "otro") %>% 
+  group_by(estado, clues, unidad_medica, categoria) %>% 
+  summarise(
+    propuestas = n(),
+    aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
+    .groups = "drop"
+  ) %>% 
+  tidyr::pivot_wider(
+    names_from = categoria,
+    values_from = c(propuestas, aprobados),
+    values_fill = 0
+  )
+
+columnas_necesarias <- c(
+  "propuestas_med_especi", "propuestas_med_gen", "propuestas_enf",
+  "aprobados_med_especi", "aprobados_med_gen", "aprobados_enf"
+)
+
+for (col in columnas_necesarias) {
+  if (!col %in% names(tabla_unidades)) tabla_unidades[[col]] <- 0
+}
+
+tabla_unidades <- tabla_unidades %>% 
+  mutate(
+    total_propuestas = propuestas_med_especi + propuestas_med_gen + propuestas_enf,
+    total_aprobados = aprobados_med_especi + aprobados_med_gen + aprobados_enf
+  ) %>% 
+  arrange(desc(total_propuestas))
+```
+
+::: {.panel-tabset}
+
+## Global
 
 ```{r}
 tabla_totales <- tabla_unidades %>% 
@@ -1138,6 +1064,81 @@ DT::datatable(
   rownames = FALSE
 )
 ```
+## Médicos generales
+
+```{r}
+tabla_med_gen <- tabla_unidades %>% 
+  select(
+    Estado = estado,
+    CLUES = clues,
+    `Unidad médica` = unidad_medica,
+    `Médicos generales propuestos` = propuestas_med_gen,
+    `Médicos generales aprobados` = aprobados_med_gen
+  )
+
+DT::datatable(
+  tabla_med_gen,
+  filter = "top",
+  width = "100%",
+  options = list(
+    pageLength = 10,
+    autoWidth = TRUE,
+    scrollX = TRUE
+  ),
+  rownames = FALSE
+)
+```
+
+## Médicos especialistas
+
+```{r}
+tabla_med_especi <- tabla_unidades %>% 
+  select(
+    Estado = estado,
+    CLUES = clues,
+    `Unidad médica` = unidad_medica,
+    `Médicos especialistas propuestos` = propuestas_med_especi,
+    `Médicos especialistas aprobados` = aprobados_med_especi
+  )
+
+DT::datatable(
+  tabla_med_especi,
+  filter = "top",
+  width = "100%",
+  options = list(
+    pageLength = 10,
+    autoWidth = TRUE,
+    scrollX = TRUE
+  ),
+  rownames = FALSE
+)
+```
+
+## Enfermería
+
+```{r}
+tabla_enf <- tabla_unidades %>% 
+  select(
+    Estado = estado,
+    CLUES = clues,
+    `Unidad médica` = unidad_medica,
+    `Enfermería propuestas` = propuestas_enf,
+    `Enfermería aprobadas` = aprobados_enf
+  )
+
+DT::datatable(
+  tabla_enf,
+  filter = "top",
+  width = "100%",
+  options = list(
+    pageLength = 10,
+    autoWidth = TRUE,
+    scrollX = TRUE
+  ),
+  rownames = FALSE
+)
+```
+
 
 :::
 ```
