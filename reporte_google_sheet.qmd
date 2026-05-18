@@ -628,34 +628,72 @@ aprobados_global_categoria <- registros_completos %>%
   summarise(
     propuestas = n(),
     aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
+    rechazados = sum(revision_uas == "no aprobado", na.rm = TRUE),
     pct_aprobacion = aprobados / propuestas,
-    .groups = "drop"
-  ) %>% 
+    pct_rechazados = rechazados / propuestas,
+    .groups = "drop") %>% 
   arrange(pct_aprobacion)
 
 ggplot(
   aprobados_global_categoria,
   aes(
     x = reorder(categoria, pct_aprobacion),
-    y = pct_aprobacion
+    y = 1
   )
 ) +
-  geom_col(fill = "#1E5B4F", width = 0.75) +
+
+geom_col(
+  fill = "#d9efe6",
+  width = 0.75
+) +
+
+geom_col(
+  aes(y = pct_rechazados),
+  fill = "#A02142",
+  width = 0.75
+) +
+
+geom_col(
+  aes(y = pct_aprobacion),
+  fill = "#1E5B4F",
+  width = 0.75
+) +
+geom_text(
+  aes(
+    y = pct_aprobacion,
+    label = paste0(
+      percent(pct_aprobacion, accuracy = 1),
+      " (", comma(aprobados), "/", comma(propuestas), ")"
+    )
+  ),
+  hjust = 1.1,
+  color = "white",
+  size = 3.7,
+  fontface = "bold"
+) +
+  
   geom_text(
-    aes(
-      label = paste0(
-        percent(pct_aprobacion, accuracy = 1),
-        " (", comma(aprobados), "/", comma(propuestas), ")"
-      )
-    ),
-    hjust = -0.05,
-    size = 4,
-    fontface = "bold"
-  ) +
+  aes(
+    y = pct_rechazados,
+    label = if_else(
+      rechazados > 0,
+      paste0(
+        percent(pct_rechazados, accuracy = 1),
+        " (", comma(rechazados), ")"
+      ),
+      ""
+    )
+  ),
+  hjust = 1.1,
+  color = "white",
+  size = 3.2,
+  fontface = "bold"
+) +
+  
   coord_flip() +
   scale_y_continuous(
     labels = percent,
-    limits = c(0, 1),
+    limits = c(0, 1.15),
     expand = expansion(mult = c(0, 0.15))
   ) +
   labs(
@@ -874,6 +912,8 @@ scale_y_continuous(
 :::
 
 </details>
+
+
 ## Tabla de unidades médicas
 
 ```{r}
