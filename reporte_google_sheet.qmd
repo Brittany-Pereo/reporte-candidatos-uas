@@ -607,7 +607,6 @@ plot.caption = ggtext::element_markdown(
 ::: {.panel-tabset}
 
 ## Global
-
 ```{r}
 #| fig-width: 10
 #| fig-height: 6
@@ -738,140 +737,269 @@ ggplot(
     plot.margin = margin(10, 55, 10, 10)
   )
 ```
-
 ## Médicos generales
-
 ```{r}
-#| fig-width: 9
-#| fig-height: 6
+#| fig-width: 10
+#| fig-height: 7
 
-aprobados_medicos_generales <- registros_completos %>% 
+avance_medicos_generales <- registros_completos %>% 
   mutate(
     revision_uas = str_to_lower(revision_uas),
-    revision_uas = str_squish(revision_uas)
-  ) %>% 
-  filter(
-    revision_uas == "aprobado",
-    str_detect(cnpm, "^MG")
-  ) %>% 
-  mutate(
+    revision_uas = str_squish(revision_uas),
+    revision_uas = tidyr::replace_na(revision_uas, ""),
+    
     clave_puesto = str_to_title(str_to_lower(clave_puesto))
   ) %>% 
+  filter(str_detect(cnpm, "^MG")) %>% 
   group_by(clave_puesto) %>% 
   summarise(
     propuestas = n(),
     aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
+    rechazados = sum(revision_uas == "no aprobado", na.rm = TRUE),
+    por_revisar = sum(revision_uas == "", na.rm = TRUE),
+    
     pct_aprobacion = aprobados / propuestas,
+    pct_rechazados = rechazados / propuestas,
+    pct_por_revisar = por_revisar / propuestas,
+    
     .groups = "drop"
   ) %>% 
   arrange(pct_aprobacion)
 
 ggplot(
-  aprobados_medicos_generales,
+  avance_medicos_generales,
   aes(
-    x = reorder(str_wrap(clave_puesto, width = 35), pct_aprobacion),
-    y = pct_aprobacion
+    x = reorder(
+      str_wrap(clave_puesto, width = 35),
+      pct_aprobacion
+    )
   )
 ) +
-  geom_col(fill = "#1E5B4F", width = 0.75) +
+
+geom_col(
+  aes(y = 1),
+  fill = "#d9efe6",
+  width = 0.75
+) +
+
+geom_col(
+  aes(y = pct_rechazados),
+  fill = "#A02142",
+  width = 0.75
+) +
+
+geom_col(
+  aes(y = pct_aprobacion),
+  fill = "#1E5B4F",
+  width = 0.75
+) +
+
 geom_text(
   aes(
-    label = paste0(
-      percent(pct_aprobacion, accuracy = 1),
-      " (", comma(aprobados), "/", comma(propuestas), ")"
+    y = pct_rechazados / 2,
+    label = if_else(
+      rechazados > 0,
+      paste0(
+        percent(pct_rechazados, accuracy = 1),
+        "\n(", comma(rechazados), ")"
+      ),
+      ""
     )
   ),
-  hjust = -0.05,
-  size = 4,
+  color = "white",
+  size = 3.2,
   fontface = "bold"
 ) +
-  coord_flip() +
+
+geom_text(
+  aes(
+    y = pct_rechazados + (pct_aprobacion / 2),
+    label = if_else(
+      aprobados > 0,
+      paste0(
+        percent(pct_aprobacion, accuracy = 1),
+        "\n(",
+        comma(aprobados),
+        "/",
+        comma(propuestas),
+        ")"
+      ),
+      ""
+    )
+  ),
+  color = "white",
+  size = 3.2,
+  fontface = "bold"
+) +
+
+geom_text(
+  aes(
+    y = pct_rechazados + pct_aprobacion + (pct_por_revisar / 2),
+    label = if_else(
+      por_revisar > 0,
+      paste0(
+        percent(pct_por_revisar, accuracy = 1),
+        "\n(",
+        comma(por_revisar),
+        ")"
+      ),
+      ""
+    )
+  ),
+  color = "#263238",
+  size = 3.2,
+  fontface = "bold"
+) +
+
+geom_text(
+  aes(
+    y = 1.03,
+    label = paste0("Total: ", comma(propuestas))
+  ),
+  hjust = 0,
+  size = 3.5
+) +
+
+coord_flip(clip = "off") +
+
 scale_y_continuous(
   labels = percent,
-  limits = c(0, 1),
-  expand = expansion(mult = c(0, 0.15))
-  ) +
-  labs(
-    title = "",
-    subtitle = "Candidatos aprobados UAS de médicos generales",
-    x = NULL,
-    y = ""
-  ) +
-  theme_minimal() +
-  theme(
-    plot.subtitle = element_text(size = 12),
-    axis.text.y = element_text(size = 12),
-    axis.text.x = element_text(size = 11),
-    panel.grid.major.y = element_blank()
-  )
+  limits = c(0, 1.12),
+  breaks = seq(0, 1, 0.25),
+  expand = expansion(mult = c(0, 0))
+) +
+
+labs(
+  title = "",
+  subtitle = "Porcentaje de aprobación UAS de médicos generales",
+  x = NULL,
+  y = "Aprobados / propuestas completas"
+) +
+
+theme_minimal() +
+
+theme(
+  plot.subtitle = element_text(
+    size = 12,
+    face = "bold"
+  ),
+  
+  axis.text.y = element_text(size = 11),
+  
+  axis.text.x = element_text(size = 11),
+  
+  axis.title.x = element_text(size = 13),
+  
+  panel.grid.major.y = element_blank(),
+  
+  plot.margin = margin(10, 55, 10, 10)
+)
 ```
 
 ## Médicos especialistas
 
 ```{r}
-#| fig-width: 9
-#| fig-height: 6
+#| fig-width: 10
+#| fig-height: 7
 
-aprobados_medicos_especialistas <- registros_completos %>% 
+avance_medicos_especialistas <- registros_completos %>% 
   mutate(
     revision_uas = str_to_lower(revision_uas),
-    revision_uas = str_squish(revision_uas)
-  ) %>% 
-  filter(
-    revision_uas == "aprobado",
-    str_detect(cnpm, "^ME")
-  ) %>% 
-  mutate(
+    revision_uas = str_squish(revision_uas),
+    revision_uas = tidyr::replace_na(revision_uas, ""),
     clave_puesto = str_to_title(str_to_lower(clave_puesto))
   ) %>% 
+  filter(str_detect(cnpm, "^ME")) %>% 
   group_by(clave_puesto) %>% 
   summarise(
     propuestas = n(),
     aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
+    rechazados = sum(revision_uas == "no aprobado", na.rm = TRUE),
+    por_revisar = sum(revision_uas == "", na.rm = TRUE),
     pct_aprobacion = aprobados / propuestas,
+    pct_rechazados = rechazados / propuestas,
+    pct_por_revisar = por_revisar / propuestas,
     .groups = "drop"
   ) %>% 
   arrange(pct_aprobacion)
 
 ggplot(
-  aprobados_medicos_especialistas,
+  avance_medicos_especialistas,
   aes(
-    x = reorder(str_wrap(clave_puesto, width = 35), pct_aprobacion),
-    y = pct_aprobacion
+    x = reorder(str_wrap(clave_puesto, width = 35), pct_aprobacion)
   )
 ) +
-  geom_col(fill = "#1E5B4F", width = 0.75) +
-geom_text(
-  aes(
-    label = paste0(
-      percent(pct_aprobacion, accuracy = 1),
-      " (", comma(aprobados), "/", comma(propuestas), ")"
-    )
-  ),
-  hjust = -0.05,
-  size = 4,
-  fontface = "bold"
-) +
-  coord_flip() +
-  
-scale_y_continuous(
-  labels = percent,
-  limits = c(0, 1),
-  expand = expansion(mult = c(0, 0.15))
+  geom_col(aes(y = 1), fill = "#d9efe6", width = 0.75) +
+  geom_col(aes(y = pct_rechazados), fill = "#A02142", width = 0.75) +
+  geom_col(aes(y = pct_aprobacion), fill = "#1E5B4F", width = 0.75) +
+  geom_text(
+    aes(
+      y = pct_rechazados / 2,
+      label = if_else(
+        rechazados > 0,
+        paste0(percent(pct_rechazados, accuracy = 1), "\n(", comma(rechazados), ")"),
+        ""
+      )
+    ),
+    color = "white",
+    size = 3.2,
+    fontface = "bold"
   ) +
-  
+  geom_text(
+    aes(
+      y = pct_rechazados + (pct_aprobacion / 2),
+      label = if_else(
+        aprobados > 0,
+        paste0(percent(pct_aprobacion, accuracy = 1), "\n(", comma(aprobados), "/", comma(propuestas), ")"),
+        ""
+      )
+    ),
+    color = "white",
+    size = 3.2,
+    fontface = "bold"
+  ) +
+  geom_text(
+    aes(
+      y = pct_rechazados + pct_aprobacion + (pct_por_revisar / 2),
+      label = if_else(
+        por_revisar > 0,
+        paste0(percent(pct_por_revisar, accuracy = 1), "\n(", comma(por_revisar), ")"),
+        ""
+      )
+    ),
+    color = "#263238",
+    size = 3.2,
+    fontface = "bold"
+  ) +
+  geom_text(
+    aes(
+      y = 1.03,
+      label = paste0("Total: ", comma(propuestas))
+    ),
+    hjust = 0,
+    size = 3.5
+  ) +
+  coord_flip(clip = "off") +
+  scale_y_continuous(
+    labels = percent,
+    limits = c(0, 1.12),
+    breaks = seq(0, 1, 0.25),
+    expand = expansion(mult = c(0, 0))
+  ) +
   labs(
     title = "",
-    subtitle = "Candidatos aprobados UAS de médicos especialistas",
+    subtitle = "Porcentaje de aprobación UAS de médicos especialistas",
     x = NULL,
-    y = ""
+    y = "Aprobados / propuestas completas"
   ) +
   theme_minimal() +
   theme(
-    plot.subtitle = element_text(size = 12),
-    axis.text.y = element_text(size = 12),
+    plot.subtitle = element_text(size = 12, face = "bold"),
+    axis.text.y = element_text(size = 11),
     axis.text.x = element_text(size = 11),
-    panel.grid.major.y = element_blank()
+    axis.title.x = element_text(size = 13),
+    panel.grid.major.y = element_blank(),
+    plot.margin = margin(10, 55, 10, 10)
   )
 ```
 
@@ -879,13 +1007,14 @@ scale_y_continuous(
 ## Enfermería
 
 ```{r}
-#| fig-width: 9
-#| fig-height: 6
+#| fig-width: 10
+#| fig-height: 7
 
-aprobados_enfermeria <- registros_completos %>% 
+avance_enfermeria <- registros_completos %>% 
   mutate(
     revision_uas = str_to_lower(revision_uas),
     revision_uas = str_squish(revision_uas),
+    revision_uas = tidyr::replace_na(revision_uas, ""),
     clave_puesto = str_to_title(str_to_lower(clave_puesto))
   ) %>% 
   filter(str_detect(cnpm, "^EN")) %>% 
@@ -893,53 +1022,98 @@ aprobados_enfermeria <- registros_completos %>%
   summarise(
     propuestas = n(),
     aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
+    rechazados = sum(revision_uas == "no aprobado", na.rm = TRUE),
+    por_revisar = sum(revision_uas == "", na.rm = TRUE),
     pct_aprobacion = aprobados / propuestas,
+    pct_rechazados = rechazados / propuestas,
+    pct_por_revisar = por_revisar / propuestas,
     .groups = "drop"
   ) %>% 
   arrange(pct_aprobacion)
 
 ggplot(
-  aprobados_enfermeria,
+  avance_enfermeria,
   aes(
-    x = reorder(str_wrap(clave_puesto, width = 35), pct_aprobacion),
-    y = pct_aprobacion
+    x = reorder(str_wrap(clave_puesto, width = 35), pct_aprobacion)
   )
 ) +
-  geom_col(fill = "#1E5B4F", width = 0.75) +
-geom_text(
-  aes(
-    label = paste0(
-      percent(pct_aprobacion, accuracy = 1),
-      " (", comma(aprobados), "/", comma(propuestas), ")"
-    )
-  ),
-  hjust = -0.05,
-  size = 4,
-  fontface = "bold"
-) +
-  coord_flip() +
-scale_y_continuous(
-  labels = percent,
-  limits = c(0, 1),
-  expand = expansion(mult = c(0, 0.15))
+  geom_col(aes(y = 1), fill = "#d9efe6", width = 0.75) +
+  geom_col(aes(y = pct_rechazados), fill = "#A02142", width = 0.75) +
+  geom_col(aes(y = pct_aprobacion), fill = "#1E5B4F", width = 0.75) +
+  geom_text(
+    aes(
+      y = pct_rechazados / 2,
+      label = if_else(
+        rechazados > 0,
+        paste0(percent(pct_rechazados, accuracy = 1), "\n(", comma(rechazados), ")"),
+        ""
+      )
+    ),
+    color = "white",
+    size = 3.2,
+    fontface = "bold"
+  ) +
+  geom_text(
+    aes(
+      y = pct_rechazados + (pct_aprobacion / 2),
+      label = if_else(
+        aprobados > 0,
+        paste0(percent(pct_aprobacion, accuracy = 1), "\n(", comma(aprobados), "/", comma(propuestas), ")"),
+        ""
+      )
+    ),
+    color = "white",
+    size = 3.2,
+    fontface = "bold"
+  ) +
+  geom_text(
+    aes(
+      y = pct_rechazados + pct_aprobacion + (pct_por_revisar / 2),
+      label = if_else(
+        por_revisar > 0,
+        paste0(percent(pct_por_revisar, accuracy = 1), "\n(", comma(por_revisar), ")"),
+        ""
+      )
+    ),
+    color = "#263238",
+    size = 3.2,
+    fontface = "bold"
+  ) +
+  geom_text(
+    aes(
+      y = 1.03,
+      label = paste0("Total: ", comma(propuestas))
+    ),
+    hjust = 0,
+    size = 3.5
+  ) +
+  coord_flip(clip = "off") +
+  scale_y_continuous(
+    labels = percent,
+    limits = c(0, 1.12),
+    breaks = seq(0, 1, 0.25),
+    expand = expansion(mult = c(0, 0))
   ) +
   labs(
     title = "",
-    subtitle = "Candidatos aprobados UAS de enfermería",
+    subtitle = "Porcentaje de aprobación UAS de enfermería",
     x = NULL,
-    y = ""
+    y = "Aprobados / propuestas completas"
   ) +
   theme_minimal() +
   theme(
-    plot.subtitle = element_text(size = 12),
-    axis.text.y = element_text(size = 12),
+    plot.subtitle = element_text(size = 12, face = "bold"),
+    axis.text.y = element_text(size = 11),
     axis.text.x = element_text(size = 11),
-    panel.grid.major.y = element_blank()
+    axis.title.x = element_text(size = 13),
+    panel.grid.major.y = element_blank(),
+    plot.margin = margin(10, 55, 10, 10)
   )
 ```
 :::
 
 </details>
+
 
 
 ## Tabla de unidades médicas
