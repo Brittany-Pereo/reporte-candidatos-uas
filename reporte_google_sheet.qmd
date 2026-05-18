@@ -642,8 +642,25 @@ avance_medicos_especialistas <- registros_completos %>%
     revision_uas = str_to_lower(revision_uas),
     revision_uas = str_squish(revision_uas),
     revision_uas = tidyr::replace_na(revision_uas, ""),
-    clave_puesto = str_to_title(str_to_lower(clave_puesto))
-  ) %>% 
+    clave_puesto = str_to_title(str_to_lower(clave_puesto)),
+    clave_puesto = dplyr::case_when(
+  clave_puesto == "Traumatologia Y Ortopedia" ~ "Trauma y Ortop.",
+  clave_puesto == "Radiologia E Imagen" ~ "Radiología e Imagen",
+  clave_puesto == "Medicina De Rehabilitacion" ~ "Medicina Rehab.",
+  clave_puesto == "Inmunologia Clinica Y Alergia" ~ "Inmunología y Alergia",
+  clave_puesto == "Cirugia Oral Y Maxilofacial" ~ "Cirugía Maxilof.",
+  clave_puesto == "Cirugia Oncologica Pediatrica" ~ "Cirugía Oncol. Ped.",
+  clave_puesto == "Anestesiologia Pediatrica" ~ "Anest. Pediátrica",
+  clave_puesto == "Algologia Y Cuidados Paliativos" ~ "Algología y CP",
+  clave_puesto == "Medicina De Urgencias" ~ "Urgencias",
+  clave_puesto == "Medicina Interna" ~ "Medicina Int.",
+  clave_puesto == "Medicina Familiar" ~ "Medicina Fam.",
+  clave_puesto == "Ginecologia Y Obstetricia" ~ "Gineco-Obstetricia",
+  clave_puesto == "Oncologia Pediatrica" ~ "Oncología Ped.",
+  clave_puesto == "Hematologia Pediatrica" ~ "Hematología Ped.",
+  clave_puesto == "Pediatria Medica" ~ "Pediatría",
+  TRUE ~ clave_puesto
+)) %>% 
   filter(str_detect(cnpm, "^ME")) %>% 
   group_by(clave_puesto) %>% 
   summarise(
@@ -706,14 +723,16 @@ ggplot(
     size = 3.2,
     fontface = "bold"
   ) +
-  geom_text(
-    aes(
-      y = 1.03,
-      label = paste0("Total: ", comma(propuestas))
-    ),
-    hjust = 0,
-    size = 3.5
-  ) +
+ geom_text(
+  aes(
+    y = 1.02,
+    label = comma(propuestas)
+  ),
+  hjust = 0,
+  size = 3.6,
+  fontface = "bold",
+  color = "#374151"
+)  +
   coord_flip(clip = "off") +
   scale_y_continuous(
     labels = percent,
