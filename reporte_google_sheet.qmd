@@ -305,7 +305,7 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:18px; margin-top:18px; margin-bottom:18px;">
 
 <div style="background:#f8fafc; border:1px solid #e5e7eb; padding:20px 24px; border-radius:18px;">
-  <p style="margin:0; color:#6b7280; font-size:15px; font-weight:600;">
+  <p style="margin:0; color:#6b7280; font-size:24px; font-weight:600;">
     Total médicos generales
   </p>
   <p style="font-size:38px; font-weight:800; color:#263238; margin:6px 0 0 0;">
@@ -314,7 +314,7 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 </div>
 
 <div style="background:#f8fafc; border:1px solid #e5e7eb; padding:20px 24px; border-radius:18px;">
-  <p style="margin:0; color:#6b7280; font-size:15px; font-weight:600;">
+  <p style="margin:0; color:#6b7280; font-size:24px; font-weight:600;">
     Total médicos especialistas
   </p>
   <p style="font-size:38px; font-weight:800; color:#263238; margin:6px 0 0 0;">
@@ -323,7 +323,7 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 </div>
 
 <div style="background:#f8fafc; border:1px solid #e5e7eb; padding:20px 24px; border-radius:18px;">
-  <p style="margin:0; color:#6b7280; font-size:15px; font-weight:600;">
+  <p style="margin:0; color:#6b7280; font-size:24px; font-weight:600;">
     Total enfermería
   </p>
   <p style="font-size:38px; font-weight:800; color:#263238; margin:6px 0 0 0;">
@@ -489,6 +489,7 @@ Los porcentajes de Aprobados, Rechazados y Por revisar se calculan respecto al t
 </div>
 
 </details>
+
 
 ## Registros aprobados por clave de puesto
 <details open>
