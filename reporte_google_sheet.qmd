@@ -478,6 +478,18 @@ ggplot(
       y = dplyr::if_else(
         total_registros == 0,
         0,
+        rechazados / total_registros
+      )
+    ),
+    fill = "#A02142",
+    width = 0.75
+  ) +
+  
+  geom_col(
+    aes(
+      y = dplyr::if_else(
+        total_registros == 0,
+        0,
         aprobados / total_registros
       )
     ),
@@ -490,6 +502,25 @@ ggplot(
     hjust = -0.05,
     size = 3.1
   ) +
+  
+  geom_text(
+  aes(
+    y = dplyr::if_else(
+      total_registros == 0,
+      0,
+      rechazados / total_registros
+    ),
+    label = dplyr::if_else(
+      rechazados > 0,
+      comma(rechazados),
+      ""
+    )
+  ),
+  hjust = 1.1,
+  color = "white",
+  size = 2.7,
+  fontface = "bold"
+) +
   
   geom_text(
   aes(
@@ -520,9 +551,10 @@ scale_y_continuous(
   labs(
     title = "Avance de registros completos por estado",
     
-   subtitle = paste0(
+subtitle = paste0(
   "La barra verde claro representa registros completos.\n",
-  "La barra verde representa candidatos aprobados UAS."
+  "La barra verde representa candidatos aprobados UAS.\n",
+  "La barra roja representa candidatos no aprobados UAS."
 ),
     
     x = NULL,
