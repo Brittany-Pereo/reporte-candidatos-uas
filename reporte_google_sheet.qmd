@@ -390,13 +390,12 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 
 </div>
 ...
-
+:::
 <div style="background-color:#eaf4ff; color:#155a9c; padding:14px 18px; border-radius:12px;">
 Los porcentajes de Aprobados, Rechazados y Por revisar se calculan respecto al total de registros y respecto a los registros completos.
 </div>
 </div>
 
-:::
 </details>
 
 ## Distribución del registro
