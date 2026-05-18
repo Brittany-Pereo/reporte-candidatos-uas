@@ -328,27 +328,6 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 
 </div>
 
-## Enfermería
-
-<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; margin-top:18px;">
-
-<div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:24px; border-radius:16px;">
-<h3>Aprobados UAS</h3>
-<p style="font-size:34px; font-weight:bold; color:#1E5B4F; margin:0;">`r comma(valor_resumen("enf", aprobados))`</p>
-</div>
-
-<div style="background-color:#fffaf0; border:1px solid #f1d58a; padding:24px; border-radius:16px;">
-<h3>Por revisar UAS</h3>
-<p style="font-size:34px; font-weight:bold; color:#9A6B00; margin:0;">`r comma(valor_resumen("enf", por_revisar))`</p>
-</div>
-
-<div style="background-color:#fff6f7; border:1px solid #f0cfd6; padding:24px; border-radius:16px;">
-<h3>Rechazados UAS</h3>
-<p style="font-size:34px; font-weight:bold; color:#A02142; margin:0;">`r comma(valor_resumen("enf", rechazados))`</p>
-</div>
-
-</div>
-
 ## Médicos generales
 
 <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; margin-top:18px;">
@@ -398,6 +377,27 @@ Los porcentajes de Aprobados, Rechazados y Por revisar se calculan respecto al t
 </div>
 
 </details>
+## Enfermería
+
+<div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; margin-top:18px;">
+
+<div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:24px; border-radius:16px;">
+<h3>Aprobados UAS</h3>
+<p style="font-size:34px; font-weight:bold; color:#1E5B4F; margin:0;">`r comma(valor_resumen("enf", aprobados))`</p>
+</div>
+
+<div style="background-color:#fffaf0; border:1px solid #f1d58a; padding:24px; border-radius:16px;">
+<h3>Por revisar UAS</h3>
+<p style="font-size:34px; font-weight:bold; color:#9A6B00; margin:0;">`r comma(valor_resumen("enf", por_revisar))`</p>
+</div>
+
+<div style="background-color:#fff6f7; border:1px solid #f0cfd6; padding:24px; border-radius:16px;">
+<h3>Rechazados UAS</h3>
+<p style="font-size:34px; font-weight:bold; color:#A02142; margin:0;">`r comma(valor_resumen("enf", rechazados))`</p>
+</div>
+
+</div>
+
 ## Distribución del registro
 
 <details open>
@@ -673,68 +673,6 @@ ggplot(
   )
 ```
 
-## Enfermería
-
-```{r}
-#| fig-width: 9
-#| fig-height: 6
-
-aprobados_enfermeria <- registros_completos %>% 
-  mutate(
-    revision_uas = str_to_lower(revision_uas),
-    revision_uas = str_squish(revision_uas),
-    clave_puesto = str_to_title(str_to_lower(clave_puesto))
-  ) %>% 
-  filter(str_detect(cnpm, "^EN")) %>% 
-  group_by(clave_puesto) %>% 
-  summarise(
-    propuestas = n(),
-    aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
-    pct_aprobacion = aprobados / propuestas,
-    .groups = "drop"
-  ) %>% 
-  arrange(pct_aprobacion)
-
-ggplot(
-  aprobados_enfermeria,
-  aes(
-    x = reorder(str_wrap(clave_puesto, width = 35), pct_aprobacion),
-    y = pct_aprobacion
-  )
-) +
-  geom_col(fill = "#1E5B4F", width = 0.75) +
-geom_text(
-  aes(
-    label = paste0(
-      percent(pct_aprobacion, accuracy = 1),
-      " (", comma(aprobados), "/", comma(propuestas), ")"
-    )
-  ),
-  hjust = -0.05,
-  size = 4,
-  fontface = "bold"
-) +
-  coord_flip() +
-scale_y_continuous(
-  labels = percent,
-  limits = c(0, 1),
-  expand = expansion(mult = c(0, 0.15))
-  ) +
-  labs(
-    title = "",
-    subtitle = "Candidatos aprobados UAS de enfermería",
-    x = NULL,
-    y = ""
-  ) +
-  theme_minimal() +
-  theme(
-    plot.subtitle = element_text(size = 12),
-    axis.text.y = element_text(size = 12),
-    axis.text.x = element_text(size = 11),
-    panel.grid.major.y = element_blank()
-  )
-```
-
 ## Médicos generales
 
 ```{r}
@@ -874,6 +812,68 @@ scale_y_continuous(
 :::
 
 </details>
+## Enfermería
+
+```{r}
+#| fig-width: 9
+#| fig-height: 6
+
+aprobados_enfermeria <- registros_completos %>% 
+  mutate(
+    revision_uas = str_to_lower(revision_uas),
+    revision_uas = str_squish(revision_uas),
+    clave_puesto = str_to_title(str_to_lower(clave_puesto))
+  ) %>% 
+  filter(str_detect(cnpm, "^EN")) %>% 
+  group_by(clave_puesto) %>% 
+  summarise(
+    propuestas = n(),
+    aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
+    pct_aprobacion = aprobados / propuestas,
+    .groups = "drop"
+  ) %>% 
+  arrange(pct_aprobacion)
+
+ggplot(
+  aprobados_enfermeria,
+  aes(
+    x = reorder(str_wrap(clave_puesto, width = 35), pct_aprobacion),
+    y = pct_aprobacion
+  )
+) +
+  geom_col(fill = "#1E5B4F", width = 0.75) +
+geom_text(
+  aes(
+    label = paste0(
+      percent(pct_aprobacion, accuracy = 1),
+      " (", comma(aprobados), "/", comma(propuestas), ")"
+    )
+  ),
+  hjust = -0.05,
+  size = 4,
+  fontface = "bold"
+) +
+  coord_flip() +
+scale_y_continuous(
+  labels = percent,
+  limits = c(0, 1),
+  expand = expansion(mult = c(0, 0.15))
+  ) +
+  labs(
+    title = "",
+    subtitle = "Candidatos aprobados UAS de enfermería",
+    x = NULL,
+    y = ""
+  ) +
+  theme_minimal() +
+  theme(
+    plot.subtitle = element_text(size = 12),
+    axis.text.y = element_text(size = 12),
+    axis.text.x = element_text(size = 11),
+    panel.grid.major.y = element_blank()
+  )
+```
+
 ## Tabla de unidades médicas
 
 ```{r}
