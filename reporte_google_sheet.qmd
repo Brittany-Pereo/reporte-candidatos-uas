@@ -330,6 +330,13 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 
 ## Médicos generales
 
+<div style="background-color:#f4f6f8; border:1px solid #ddd; padding:18px; border-radius:14px; margin-top:18px;">
+<h3 style="margin:0;">Total de médicos generales</h3>
+<p style="font-size:34px; font-weight:bold; color:#263238; margin:8px 0 0 0;">
+`r comma(valor_resumen("med_gen", total))`
+</p>
+</div>
+
 <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; margin-top:18px;">
 
 <div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:24px; border-radius:16px;">
@@ -350,7 +357,12 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 </div>
 
 ## Médicos especialistas
-
+<div style="background-color:#f4f6f8; border:1px solid #ddd; padding:18px; border-radius:14px; margin-top:18px;">
+<h3 style="margin:0;">Total de médicos especialistas</h3>
+<p style="font-size:34px; font-weight:bold; color:#263238; margin:8px 0 0 0;">
+`r comma(valor_resumen("med_especi", total))`
+</p>
+</div>
 <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; margin-top:18px;">
 
 <div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:24px; border-radius:16px;">
@@ -370,7 +382,12 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 </div>
 
 ## Enfermería
-
+<div style="background-color:#f4f6f8; border:1px solid #ddd; padding:18px; border-radius:14px; margin-top:18px;">
+<h3 style="margin:0;">Total de enfermería</h3>
+<p style="font-size:34px; font-weight:bold; color:#263238; margin:8px 0 0 0;">
+`r comma(valor_resumen("enf", total))`
+</p>
+</div>
 <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:18px; margin-top:18px;">
 
 <div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:24px; border-radius:16px;">
