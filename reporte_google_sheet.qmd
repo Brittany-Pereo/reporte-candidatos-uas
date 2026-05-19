@@ -243,7 +243,6 @@ resumen_por_categoria <- registros_completos %>%
       TRUE ~ "otro"
     )
   ) %>% 
-  filter(categoria != "otro") %>% 
   group_by(categoria) %>% 
   summarise(
     total = n(),
@@ -362,7 +361,7 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 Global
 </h3>
 
-<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:18px;">
+<div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:18px; margin-top:18px; margin-bottom:18px;">
 
 <div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:22px; border-radius:18px;">
 <p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Aprobados UAS</p>
