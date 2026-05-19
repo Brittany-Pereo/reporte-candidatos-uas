@@ -337,7 +337,6 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 <details open>
 <summary><b>Detalle de registros completos</b></summary>
 
-::: {.panel-tabset}
 
 ## Resumen por estatus UAS
 
@@ -776,5 +775,5 @@ DT::datatable(
 ```
 
 
-:::
+
 ```
