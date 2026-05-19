@@ -575,7 +575,7 @@ ggplot(
         aprobados > 0,
         paste0(
           percent(pct_aprobacion, accuracy = 1),
-          "\n(", comma(aprobados), "/", comma(propuestas), ")"
+          "\n(", comma(aprobados), ")"
         ),
         ""
       )
@@ -644,23 +644,17 @@ avance_medicos_especialistas <- registros_completos %>%
     revision_uas = tidyr::replace_na(revision_uas, ""),
     clave_puesto = str_to_title(str_to_lower(clave_puesto)),
     clave_puesto = dplyr::case_when(
-  clave_puesto == "Traumatologia Y Ortopedia" ~ "Trauma y Ortop.",
-  clave_puesto == "Radiologia E Imagen" ~ "Radiología e Imagen",
-  clave_puesto == "Medicina De Rehabilitacion" ~ "Medicina Rehab.",
-  clave_puesto == "Inmunologia Clinica Y Alergia" ~ "Inmunología y Alergia",
-  clave_puesto == "Cirugia Oral Y Maxilofacial" ~ "Cirugía Maxilof.",
-  clave_puesto == "Cirugia Oncologica Pediatrica" ~ "Cirugía Oncol. Ped.",
-  clave_puesto == "Anestesiologia Pediatrica" ~ "Anest. Pediátrica",
-  clave_puesto == "Algologia Y Cuidados Paliativos" ~ "Algología y CP",
-  clave_puesto == "Medicina De Urgencias" ~ "Urgencias",
-  clave_puesto == "Medicina Interna" ~ "Medicina Int.",
-  clave_puesto == "Medicina Familiar" ~ "Medicina Fam.",
-  clave_puesto == "Ginecologia Y Obstetricia" ~ "Gineco-Obstetricia",
-  clave_puesto == "Oncologia Pediatrica" ~ "Oncología Ped.",
-  clave_puesto == "Hematologia Pediatrica" ~ "Hematología Ped.",
-  clave_puesto == "Pediatria Medica" ~ "Pediatría",
-  TRUE ~ clave_puesto
-)) %>% 
+      clave_puesto == "Traumatologia Y Ortopedia" ~ "Trauma y Ortop.",
+      clave_puesto == "Medicina De Rehabilitacion" ~ "Medicina Rehab.",
+      clave_puesto == "Medicina De Urgencias" ~ "Urgencias",
+      clave_puesto == "Medicina Interna" ~ "Medicina Int.",
+      clave_puesto == "Medicina Familiar" ~ "Medicina Fam.",
+      clave_puesto == "Ginecologia Y Obstetricia" ~ "Gineco-Obstetricia",
+      clave_puesto == "Oncologia Pediatrica" ~ "Oncología Ped.",
+      clave_puesto == "Pediatria Medica" ~ "Pediatría",
+      TRUE ~ clave_puesto
+    )
+  ) %>% 
   filter(str_detect(cnpm, "^ME")) %>% 
   group_by(clave_puesto) %>% 
   summarise(
@@ -673,6 +667,7 @@ avance_medicos_especialistas <- registros_completos %>%
     pct_por_revisar = por_revisar / propuestas,
     .groups = "drop"
   ) %>% 
+  slice_max(order_by = propuestas, n = 15) %>% 
   arrange(pct_aprobacion)
 
 ggplot(
@@ -694,7 +689,7 @@ ggplot(
       )
     ),
     color = "white",
-    size = 3.2,
+    size = 2.8,
     fontface = "bold"
   ) +
   geom_text(
@@ -743,18 +738,25 @@ ggplot(
   labs(
     title = "",
     subtitle = "Porcentaje de aprobación UAS de médicos especialistas",
+    caption = "Nota: se muestran las 15 especialidades con mayor número de propuestas.",
     x = NULL,
     y = "Aprobados / propuestas completas"
   ) +
   theme_minimal() +
   theme(
-    plot.subtitle = element_text(size = 12, face = "bold"),
-    axis.text.y = element_text(size = 11),
-    axis.text.x = element_text(size = 11),
-    axis.title.x = element_text(size = 13),
-    panel.grid.major.y = element_blank(),
-    plot.margin = margin(10, 55, 10, 10)
-  )
+  plot.subtitle = element_text(size = 12, face = "bold"),
+  plot.caption = element_text(
+    size = 9,
+    color = "#6b7280",
+    hjust = 0,
+    face = "italic"
+  ),
+  axis.text.y = element_text(size = 11),
+  axis.text.x = element_text(size = 11),
+  axis.title.x = element_text(size = 13),
+  panel.grid.major.y = element_blank(),
+  plot.margin = margin(10, 55, 10, 10)
+)
 ```
 
 
