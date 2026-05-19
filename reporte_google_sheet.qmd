@@ -710,7 +710,7 @@ ggplot(
       y = pct_rechazados + pct_aprobacion + (pct_por_revisar / 2),
       label = if_else(
         por_revisar > 0,
-        paste0(percent(pct_por_revisar, accuracy = 1), "\n(", comma(por_revisar), ")"),
+        paste0(percent(pct_por_revisar, accuracy = 1),  comma(por_revisar), ")"),
         ""
       )
     ),
@@ -814,7 +814,7 @@ ggplot(
       y = pct_rechazados + (pct_aprobacion / 2),
       label = if_else(
         aprobados > 0,
-        paste0(percent(pct_aprobacion, accuracy = 1), "\n(", comma(aprobados), "/", comma(propuestas), ")"),
+        paste0(percent(pct_aprobacion, accuracy = 1),  comma(aprobados), "/", comma(propuestas), ")"),
         ""
       )
     ),
