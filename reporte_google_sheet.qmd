@@ -219,6 +219,10 @@ if (!"enf" %in% names(tabla_unidades_base)) {
   tabla_unidades_base$enf <- 0
 }
 
+if (!"otro" %in% names(tabla_unidades_base)) {
+  tabla_unidades_base$otro <- 0
+}
+
 tabla_unidades <- tabla_unidades_base %>% 
   mutate(
     total_propuestas = med_especi + med_gen + enf
@@ -308,7 +312,7 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 
 <div style="background:#f8fafc; border:1px solid #e5e7eb; padding:20px 24px; border-radius:18px;">
   <p style="margin:0; color:#6b7280; font-size:18px; font-weight:600;">
-    Total médicos generales
+    Personal médico general
   </p>
   <p style="font-size:38px; font-weight:800; color:#263238; margin:6px 0 0 0;">
     `r comma(valor_resumen("med_gen", total))`
@@ -317,7 +321,7 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 
 <div style="background:#f8fafc; border:1px solid #e5e7eb; padding:20px 24px; border-radius:18px;">
   <p style="margin:0; color:#6b7280; font-size:18px; font-weight:600;">
-    Total médicos especialistas
+    Personal médico especialista
   </p>
   <p style="font-size:38px; font-weight:800; color:#263238; margin:6px 0 0 0;">
     `r comma(valor_resumen("med_especi", total))`
@@ -326,10 +330,19 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 
 <div style="background:#f8fafc; border:1px solid #e5e7eb; padding:20px 24px; border-radius:18px;">
   <p style="margin:0; color:#6b7280; font-size:18px; font-weight:600;">
-    Total enfermería
+    Personal de enfermería
   </p>
   <p style="font-size:38px; font-weight:800; color:#263238; margin:6px 0 0 0;">
     `r comma(valor_resumen("enf", total))`
+  </p>
+</div>
+
+<div style="background:#f8fafc; border:1px solid #e5e7eb; padding:20px 24px; border-radius:18px;">
+  <p style="margin:0; color:#6b7280; font-size:18px; font-weight:600;">
+    Otros
+  </p>
+  <p style="font-size:38px; font-weight:800; color:#263238; margin:6px 0 0 0;">
+    `r comma(valor_resumen("otro", total))`
   </p>
 </div>
 
