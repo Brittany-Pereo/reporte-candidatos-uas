@@ -849,7 +849,7 @@ tabla_unidades <- registros_completos %>%
 summarise(
   propuestas = n(),
   aprobados_uas = sum(revision_uas == "aprobado", na.rm = TRUE),
-  aprobados_upe = sum(revision_upe == "aprobado", na.rm = TRUE),
+  aprobados_upe = sum(revision_upe == "aceptado", na.rm = TRUE),
   .groups = "drop"
 ) %>% 
 tidyr::pivot_wider(
