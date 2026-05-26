@@ -320,17 +320,38 @@ resumen_por_categoria_upe <- registros_completos %>%
     total = n(),
     aprobados = sum(revision_upe == "aceptado", na.rm = TRUE),
     rechazados = sum(revision_upe == "rechazado", na.rm = TRUE),
-    por_revisar = sum(revision_upe == "" & cnpm != "",
-      na.rm = TRUE), .groups = "drop"
+    por_revisar = sum(revision_upe == "revision", na.rm = TRUE),
+    .groups = "drop"
   )
 
-resumen_global_upe <- tibble::tibble(
-  categoria = "global",
-  total = nrow(registros_completos),
-  aprobados = sum(registros_completos$revision_upe == "aceptado", na.rm = TRUE),
-  rechazados = sum(registros_completos$revision_upe == "rechazado", na.rm = TRUE),
-  por_revisar = sum(registros_completos$revision_upe == "" & registros_completos$cnpm != "", na.rm = TRUE)
-)
+resumen_global_upe <- registros_completos %>% 
+  mutate(
+    revision_upe = str_to_lower(str_squish(revision_upe)),
+    revision_upe = tidyr::replace_na(revision_upe, ""),
+    
+    cnpm = str_squish(cnpm),
+    cnpm = tidyr::replace_na(cnpm, "")
+  ) %>% 
+  summarise(
+    categoria = "global",
+    
+    total = sum(revision_upe != "", na.rm = TRUE),
+    
+    aprobados = sum(
+      revision_upe == "aceptado",
+      na.rm = TRUE
+    ),
+    
+    rechazados = sum(
+      revision_upe == "rechazado",
+      na.rm = TRUE
+    ),
+    
+    por_revisar = sum(
+      revision_upe == "revision",
+      na.rm = TRUE
+    )
+  )
 
 resumen_tabs_upe <- bind_rows(resumen_global_upe, resumen_por_categoria_upe)
 
