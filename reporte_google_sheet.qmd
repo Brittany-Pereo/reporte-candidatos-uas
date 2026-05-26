@@ -726,12 +726,18 @@ tabla_unidades <- registros_detalle %>%
   ) %>% 
   summarise(
     propuestas = n(),
-    aprobados_uas = sum(revision_uas == "aprobado", na.rm = TRUE),
+    aprobados_uas = sum(
+      revision_uas == "aprobado",
+      na.rm = TRUE
+    ),
     .groups = "drop"
   ) %>% 
   tidyr::pivot_wider(
     names_from = categoria,
-    values_from = c(propuestas, aprobados_uas),
+    values_from = c(
+      propuestas,
+      aprobados_uas
+    ),
     values_fill = 0
   )
 
@@ -741,7 +747,10 @@ tabla_upe_unidades <- datos_upe %>%
     categoria
   ) %>% 
   summarise(
-    aprobados_upe = sum(upe == "aceptado", na.rm = TRUE),
+    aprobados_upe = sum(
+      upe == "aceptado",
+      na.rm = TRUE
+    ),
     .groups = "drop"
   ) %>% 
   tidyr::pivot_wider(
@@ -761,9 +770,11 @@ columnas_necesarias <- c(
   "propuestas_med_especi",
   "propuestas_med_gen",
   "propuestas_enf",
+  
   "aprobados_uas_med_especi",
   "aprobados_uas_med_gen",
   "aprobados_uas_enf",
+  
   "aprobados_upe_med_especi",
   "aprobados_upe_med_gen",
   "aprobados_upe_enf"
@@ -800,6 +811,7 @@ tabla_unidades <- tabla_unidades %>%
   arrange(desc(total_propuestas))
 
 crear_detalle_html <- function(df) {
+  
   if (nrow(df) == 0) {
     return("<em>Sin registros</em>")
   }
@@ -809,32 +821,45 @@ crear_detalle_html <- function(df) {
       cnpm = tidyr::replace_na(cnpm, ""),
       clave_puesto = tidyr::replace_na(clave_puesto, "")
     ) %>% 
-    count(cnpm, clave_puesto, name = "total") %>% 
+    count(
+      cnpm,
+      clave_puesto,
+      name = "total"
+    ) %>% 
     arrange(desc(total)) %>% 
     mutate(
       fila = paste0(
         "<tr>",
         "<td>", cnpm, "</td>",
         "<td>", clave_puesto, "</td>",
-        "<td style='text-align:right;'>", total, "</td>",
+        "<td style='text-align:right;'>", comma(total), "</td>",
         "</tr>"
       )
     ) %>% 
     summarise(
       html = paste0(
-        "<div style='padding:10px 18px; background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px;'>",
-        "<b>Desglose por CNPM y clave de puesto</b>",
-        "<table style='width:100%; margin-top:8px; border-collapse:collapse;'>",
+        "<div style='padding:14px;'>",
+        
+        "<h3 style='margin-top:0;'>Desglose por CNPM y clave de puesto</h3>",
+        
+        "<table style='width:100%; border-collapse:collapse;'>",
+        
         "<thead>",
         "<tr>",
-        "<th style='text-align:left; border-bottom:1px solid #ddd;'>CNPM</th>",
-        "<th style='text-align:left; border-bottom:1px solid #ddd;'>Clave puesto</th>",
-        "<th style='text-align:right; border-bottom:1px solid #ddd;'>Total</th>",
+        
+        "<th style='text-align:left; border-bottom:1px solid #ddd; padding:8px;'>CNPM</th>",
+        
+        "<th style='text-align:left; border-bottom:1px solid #ddd; padding:8px;'>Clave puesto</th>",
+        
+        "<th style='text-align:right; border-bottom:1px solid #ddd; padding:8px;'>Total</th>",
+        
         "</tr>",
         "</thead>",
+        
         "<tbody>",
         paste(fila, collapse = ""),
         "</tbody>",
+        
         "</table>",
         "</div>"
       )
@@ -842,45 +867,92 @@ crear_detalle_html <- function(df) {
     pull(html)
 }
 
-callback_detalle <- DT::JS(
-  "table.on('click', 'td.details-control', function(){",
-  "  var tr = $(this).closest('tr');",
-  "  var row = table.row(tr);",
-  "  if(row.child.isShown()){",
-  "    row.child.hide();",
-  "    tr.removeClass('shown');",
-  "    $(this).html('+');",
-  "  } else {",
-  "    row.child(row.data()[row.data().length - 1]).show();",
-  "    tr.addClass('shown');",
-  "    $(this).html('-');",
-  "  }",
-  "});"
-)
+boton_modal <- function(valor, detalle_html) {
+  
+  if (is.na(valor) || valor == 0) {
+    return("0")
+  }
+  
+  id <- paste0(
+    "modal_",
+    sample(100000:999999, 1)
+  )
+  
+  paste0(
+    
+    "<button onclick=\"document.getElementById('",
+    id,
+    "').style.display='block'\" ",
+    
+    "style='border:none;
+    background:none;
+    color:#1E5B4F;
+    font-weight:700;
+    cursor:pointer;
+    font-size:15px;'>",
+    
+    comma(valor),
+    
+    "</button>",
+    
+    
+    "<div id='",
+    id,
+    "' style='display:none;
+    position:fixed;
+    z-index:9999;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+    background-color:rgba(0,0,0,0.45);'>",
+    
+    
+    "<div style='background:white;
+    margin:4% auto;
+    padding:22px;
+    border-radius:16px;
+    width:72%;
+    max-height:80%;
+    overflow:auto;
+    box-shadow:0 8px 24px rgba(0,0,0,0.2);'>",
+    
+    
+    "<button onclick=\"document.getElementById('",
+    id,
+    "').style.display='none'\" ",
+    
+    "style='float:right;
+    border:none;
+    background:#A02142;
+    color:white;
+    padding:8px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:600;'>Cerrar</button>",
+    
+    detalle_html,
+    
+    "</div>",
+    "</div>"
+  )
+}
 
 crear_tabla_dt <- function(tabla) {
+  
   DT::datatable(
     tabla,
     escape = FALSE,
     filter = "top",
     width = "100%",
+    
     options = list(
       pageLength = 10,
       autoWidth = TRUE,
       scrollX = TRUE
     ),
+    
     rownames = FALSE
-  )
-}
-
-boton_detalle <- function(valor, detalle_html) {
-  paste0(
-    "<details>",
-    "<summary style='cursor:pointer; color:#1E5B4F; font-weight:700;'>",
-    comma(valor),
-    "</summary>",
-    detalle_html,
-    "</details>"
   )
 }
 ```
@@ -888,12 +960,31 @@ boton_detalle <- function(valor, detalle_html) {
 ::: {.panel-tabset}
 
 ## Global
-
 ```{r}
-detalle_global <- registros_detalle %>% 
+detalle_propuestas_global <- registros_detalle %>% 
   group_by(clues) %>% 
   group_modify(~ tibble::tibble(
-    detalle_html = crear_detalle_html(.x)
+    detalle_propuestas = crear_detalle_html(.x)
+  )) %>% 
+  ungroup()
+
+detalle_uas_global <- registros_detalle %>% 
+  mutate(
+    revision_uas = str_to_lower(str_squish(revision_uas)),
+    revision_uas = tidyr::replace_na(revision_uas, "")
+  ) %>% 
+  filter(revision_uas == "aprobado") %>% 
+  group_by(clues) %>% 
+  group_modify(~ tibble::tibble(
+    detalle_uas = crear_detalle_html(.x)
+  )) %>% 
+  ungroup()
+
+detalle_upe_global <- datos_upe %>% 
+  filter(upe == "aceptado") %>% 
+  group_by(clues) %>% 
+  group_modify(~ tibble::tibble(
+    detalle_upe = crear_detalle_html(.x)
   )) %>% 
   ungroup()
 
@@ -901,28 +992,103 @@ tabla_totales <- tabla_unidades %>%
   mutate(
     unidad_medica = str_to_title(unidad_medica)
   ) %>% 
+  
   left_join(
-    detalle_global,
+    detalle_propuestas_global,
     by = "clues"
   ) %>% 
-transmute(
-  Estado = estado,
-  CLUES = clues,
-  `Unidad médica` = unidad_medica,
-  `Total propuestas` = boton_detalle(total_propuestas, detalle_html),
-  `Total aprobados UAS` = comma(total_aprobados_uas),
-  `Total aprobados UPE` = comma(total_aprobados_upe)
-)
+  
+  left_join(
+    detalle_uas_global,
+    by = "clues"
+  ) %>% 
+  
+  left_join(
+    detalle_upe_global,
+    by = "clues"
+  ) %>% 
+  
+  mutate(
+    detalle_propuestas = tidyr::replace_na(
+      detalle_propuestas,
+      "<em>Sin registros</em>"
+    ),
+    
+    detalle_uas = tidyr::replace_na(
+      detalle_uas,
+      "<em>Sin registros</em>"
+    ),
+    
+    detalle_upe = tidyr::replace_na(
+      detalle_upe,
+      "<em>Sin registros</em>"
+    )
+  ) %>% 
+  
+  transmute(
+    Estado = estado,
+    
+    CLUES = clues,
+    
+    `Unidad médica` = unidad_medica,
+    
+    `Total propuestas` =
+      mapply(
+        boton_modal,
+        total_propuestas,
+        detalle_propuestas
+      ),
+    
+    `Total aprobados UAS` =
+      mapply(
+        boton_modal,
+        total_aprobados_uas,
+        detalle_uas
+      ),
+    
+    `Total aprobados UPE` =
+      mapply(
+        boton_modal,
+        total_aprobados_upe,
+        detalle_upe
+      )
+  )
 
 crear_tabla_dt(tabla_totales)
 ```
 ## Médicos generales
 ```{r}
-detalle_med_gen <- registros_detalle %>% 
+detalle_propuestas_med_gen <- registros_detalle %>% 
   filter(categoria == "med_gen") %>% 
   group_by(clues) %>% 
   group_modify(~ tibble::tibble(
-    detalle_html = crear_detalle_html(.x)
+    detalle_propuestas = crear_detalle_html(.x)
+  )) %>% 
+  ungroup()
+
+detalle_uas_med_gen <- registros_detalle %>% 
+  mutate(
+    revision_uas = str_to_lower(str_squish(revision_uas)),
+    revision_uas = tidyr::replace_na(revision_uas, "")
+  ) %>% 
+  filter(
+    categoria == "med_gen",
+    revision_uas == "aprobado"
+  ) %>% 
+  group_by(clues) %>% 
+  group_modify(~ tibble::tibble(
+    detalle_uas = crear_detalle_html(.x)
+  )) %>% 
+  ungroup()
+
+detalle_upe_med_gen <- datos_upe %>% 
+  filter(
+    categoria == "med_gen",
+    upe == "aceptado"
+  ) %>% 
+  group_by(clues) %>% 
+  group_modify(~ tibble::tibble(
+    detalle_upe = crear_detalle_html(.x)
   )) %>% 
   ungroup()
 
@@ -930,32 +1096,104 @@ tabla_med_gen <- tabla_unidades %>%
   mutate(
     unidad_medica = str_to_title(unidad_medica)
   ) %>% 
+  
   left_join(
-    detalle_med_gen,
+    detalle_propuestas_med_gen,
     by = "clues"
   ) %>% 
+  
+  left_join(
+    detalle_uas_med_gen,
+    by = "clues"
+  ) %>% 
+  
+  left_join(
+    detalle_upe_med_gen,
+    by = "clues"
+  ) %>% 
+  
+  mutate(
+    detalle_propuestas = tidyr::replace_na(
+      detalle_propuestas,
+      "<em>Sin registros</em>"
+    ),
+    
+    detalle_uas = tidyr::replace_na(
+      detalle_uas,
+      "<em>Sin registros</em>"
+    ),
+    
+    detalle_upe = tidyr::replace_na(
+      detalle_upe,
+      "<em>Sin registros</em>"
+    )
+  ) %>% 
+  
   transmute(
-    Detalle = "+",
     Estado = estado,
+    
     CLUES = clues,
+    
     `Unidad médica` = unidad_medica,
-    `Médicos generales propuestos` = propuestas_med_gen,
-    `Médicos generales aprobados UAS` = aprobados_uas_med_gen,
-    `Médicos generales aprobados UPE` = aprobados_upe_med_gen,
-    detalle_html = detalle_html
+    
+    `Médicos generales propuestos` =
+      mapply(
+        boton_modal,
+        propuestas_med_gen,
+        detalle_propuestas
+      ),
+    
+    `Médicos generales aprobados UAS` =
+      mapply(
+        boton_modal,
+        aprobados_uas_med_gen,
+        detalle_uas
+      ),
+    
+    `Médicos generales aprobados UPE` =
+      mapply(
+        boton_modal,
+        aprobados_upe_med_gen,
+        detalle_upe
+      )
   )
 
 crear_tabla_dt(tabla_med_gen)
 ```
 
 ## Médicos especialistas
-
 ```{r}
-detalle_med_especi <- registros_detalle %>% 
+detalle_propuestas_med_especi <- registros_detalle %>% 
   filter(categoria == "med_especi") %>% 
   group_by(clues) %>% 
   group_modify(~ tibble::tibble(
-    detalle_html = crear_detalle_html(.x)
+    detalle_propuestas = crear_detalle_html(.x)
+  )) %>% 
+  ungroup()
+
+detalle_uas_med_especi <- registros_detalle %>% 
+  mutate(
+    revision_uas = str_to_lower(str_squish(revision_uas)),
+    revision_uas = tidyr::replace_na(revision_uas, "")
+  ) %>% 
+  filter(
+    categoria == "med_especi",
+    revision_uas == "aprobado"
+  ) %>% 
+  group_by(clues) %>% 
+  group_modify(~ tibble::tibble(
+    detalle_uas = crear_detalle_html(.x)
+  )) %>% 
+  ungroup()
+
+detalle_upe_med_especi <- datos_upe %>% 
+  filter(
+    categoria == "med_especi",
+    upe == "aceptado"
+  ) %>% 
+  group_by(clues) %>% 
+  group_modify(~ tibble::tibble(
+    detalle_upe = crear_detalle_html(.x)
   )) %>% 
   ungroup()
 
@@ -963,19 +1201,66 @@ tabla_med_especi <- tabla_unidades %>%
   mutate(
     unidad_medica = str_to_title(unidad_medica)
   ) %>% 
+  
   left_join(
-    detalle_med_especi,
+    detalle_propuestas_med_especi,
     by = "clues"
   ) %>% 
+  
+  left_join(
+    detalle_uas_med_especi,
+    by = "clues"
+  ) %>% 
+  
+  left_join(
+    detalle_upe_med_especi,
+    by = "clues"
+  ) %>% 
+  
+  mutate(
+    detalle_propuestas = tidyr::replace_na(
+      detalle_propuestas,
+      "<em>Sin registros</em>"
+    ),
+    
+    detalle_uas = tidyr::replace_na(
+      detalle_uas,
+      "<em>Sin registros</em>"
+    ),
+    
+    detalle_upe = tidyr::replace_na(
+      detalle_upe,
+      "<em>Sin registros</em>"
+    )
+  ) %>% 
+  
   transmute(
-    Detalle = "+",
     Estado = estado,
+    
     CLUES = clues,
+    
     `Unidad médica` = unidad_medica,
-    `Médicos especialistas propuestos` = propuestas_med_especi,
-    `Médicos especialistas aprobados UAS` = aprobados_uas_med_especi,
-    `Médicos especialistas aprobados UPE` = aprobados_upe_med_especi,
-    detalle_html = detalle_html
+    
+    `Médicos especialistas propuestos` =
+      mapply(
+        boton_modal,
+        propuestas_med_especi,
+        detalle_propuestas
+      ),
+    
+    `Médicos especialistas aprobados UAS` =
+      mapply(
+        boton_modal,
+        aprobados_uas_med_especi,
+        detalle_uas
+      ),
+    
+    `Médicos especialistas aprobados UPE` =
+      mapply(
+        boton_modal,
+        aprobados_upe_med_especi,
+        detalle_upe
+      )
   )
 
 crear_tabla_dt(tabla_med_especi)
@@ -984,11 +1269,37 @@ crear_tabla_dt(tabla_med_especi)
 ## Enfermería
 
 ```{r}
-detalle_enf <- registros_detalle %>% 
+detalle_propuestas_enf <- registros_detalle %>% 
   filter(categoria == "enf") %>% 
   group_by(clues) %>% 
   group_modify(~ tibble::tibble(
-    detalle_html = crear_detalle_html(.x)
+    detalle_propuestas = crear_detalle_html(.x)
+  )) %>% 
+  ungroup()
+
+detalle_uas_enf <- registros_detalle %>% 
+  mutate(
+    revision_uas = str_to_lower(str_squish(revision_uas)),
+    revision_uas = tidyr::replace_na(revision_uas, "")
+  ) %>% 
+  filter(
+    categoria == "enf",
+    revision_uas == "aprobado"
+  ) %>% 
+  group_by(clues) %>% 
+  group_modify(~ tibble::tibble(
+    detalle_uas = crear_detalle_html(.x)
+  )) %>% 
+  ungroup()
+
+detalle_upe_enf <- datos_upe %>% 
+  filter(
+    categoria == "enf",
+    upe == "aceptado"
+  ) %>% 
+  group_by(clues) %>% 
+  group_modify(~ tibble::tibble(
+    detalle_upe = crear_detalle_html(.x)
   )) %>% 
   ungroup()
 
@@ -996,19 +1307,66 @@ tabla_enf <- tabla_unidades %>%
   mutate(
     unidad_medica = str_to_title(unidad_medica)
   ) %>% 
+  
   left_join(
-    detalle_enf,
+    detalle_propuestas_enf,
     by = "clues"
   ) %>% 
+  
+  left_join(
+    detalle_uas_enf,
+    by = "clues"
+  ) %>% 
+  
+  left_join(
+    detalle_upe_enf,
+    by = "clues"
+  ) %>% 
+  
+  mutate(
+    detalle_propuestas = tidyr::replace_na(
+      detalle_propuestas,
+      "<em>Sin registros</em>"
+    ),
+    
+    detalle_uas = tidyr::replace_na(
+      detalle_uas,
+      "<em>Sin registros</em>"
+    ),
+    
+    detalle_upe = tidyr::replace_na(
+      detalle_upe,
+      "<em>Sin registros</em>"
+    )
+  ) %>% 
+  
   transmute(
-    Detalle = "+",
     Estado = estado,
+    
     CLUES = clues,
+    
     `Unidad médica` = unidad_medica,
-    `Enfermería propuestas` = propuestas_enf,
-    `Enfermería aprobadas UAS` = aprobados_uas_enf,
-    `Enfermería aprobadas UPE` = aprobados_upe_enf,
-    detalle_html = detalle_html
+    
+    `Enfermería propuestas` =
+      mapply(
+        boton_modal,
+        propuestas_enf,
+        detalle_propuestas
+      ),
+    
+    `Enfermería aprobadas UAS` =
+      mapply(
+        boton_modal,
+        aprobados_uas_enf,
+        detalle_uas
+      ),
+    
+    `Enfermería aprobadas UPE` =
+      mapply(
+        boton_modal,
+        aprobados_upe_enf,
+        detalle_upe
+      )
   )
 
 crear_tabla_dt(tabla_enf)
