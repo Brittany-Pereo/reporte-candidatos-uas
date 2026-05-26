@@ -1090,9 +1090,12 @@ tabla_totales <- tabla_unidades %>%
 crear_tabla_dt(tabla_totales)
 ```
 ## Médicos generales
+
 ```{r}
 tabla_med_gen <- tabla_unidades %>% 
-  mutate(unidad_medica = str_to_title(unidad_medica)) %>% 
+  mutate(
+    unidad_medica = str_to_title(unidad_medica)
+  ) %>% 
   select(
     Estado = estado,
     CLUES = clues,
@@ -1102,17 +1105,7 @@ tabla_med_gen <- tabla_unidades %>%
     `Médicos generales aprobados UPE` = aprobados_upe_med_gen
   )
 
-DT::datatable(
-  tabla_med_gen,
-  filter = "top",
-  width = "100%",
-  options = list(
-    pageLength = 10,
-    autoWidth = TRUE,
-    scrollX = TRUE
-  ),
-  rownames = FALSE
-)
+crear_tabla_dt(tabla_med_gen)
 ```
 
 ## Médicos especialistas
