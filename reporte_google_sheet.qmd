@@ -712,8 +712,6 @@ Los porcentajes de Aprobados, Rechazados y Por revisar se calculan respecto al t
 
 ## Tabla de unidades médicas
 
-## Tabla de unidades médicas
-
 ```{r}
 tabla_unidades <- registros_detalle %>% 
   mutate(
@@ -869,21 +867,20 @@ crear_tabla_dt <- function(tabla) {
     options = list(
       pageLength = 10,
       autoWidth = TRUE,
-      scrollX = TRUE,
-      columnDefs = list(
-        list(
-          visible = FALSE,
-          targets = ncol(tabla) - 1
-        ),
-        list(
-          className = "details-control",
-          targets = 0,
-          orderable = FALSE
-        )
-      )
+      scrollX = TRUE
     ),
-    callback = callback_detalle,
     rownames = FALSE
+  )
+}
+
+boton_detalle <- function(valor, detalle_html) {
+  paste0(
+    "<details>",
+    "<summary style='cursor:pointer; color:#1E5B4F; font-weight:700;'>",
+    comma(valor),
+    "</summary>",
+    detalle_html,
+    "</details>"
   )
 }
 ```
@@ -908,16 +905,14 @@ tabla_totales <- tabla_unidades %>%
     detalle_global,
     by = "clues"
   ) %>% 
-  transmute(
-    Detalle = "+",
-    Estado = estado,
-    CLUES = clues,
-    `Unidad médica` = unidad_medica,
-    `Total propuestas` = total_propuestas,
-    `Total aprobados UAS` = total_aprobados_uas,
-    `Total aprobados UPE` = total_aprobados_upe,
-    detalle_html = detalle_html
-  )
+transmute(
+  Estado = estado,
+  CLUES = clues,
+  `Unidad médica` = unidad_medica,
+  `Total propuestas` = boton_detalle(total_propuestas, detalle_html),
+  `Total aprobados UAS` = comma(total_aprobados_uas),
+  `Total aprobados UPE` = comma(total_aprobados_upe)
+)
 
 crear_tabla_dt(tabla_totales)
 ```
