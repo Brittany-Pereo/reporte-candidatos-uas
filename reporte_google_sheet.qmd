@@ -310,8 +310,8 @@ resumen_por_categoria_upe <- registros_completos %>%
   group_by(categoria) %>% 
   summarise(
     total = n(),
-    aprobados = sum(revision_upe == "aprobado", na.rm = TRUE),
-    rechazados = sum(revision_upe == "no aprobado", na.rm = TRUE),
+    aprobados = sum(revision_upe == "aceptado", na.rm = TRUE),
+    rechazados = sum(revision_upe == "rechazado", na.rm = TRUE),
     por_revisar = sum(revision_upe == "", na.rm = TRUE),
     .groups = "drop"
   )
@@ -319,8 +319,8 @@ resumen_por_categoria_upe <- registros_completos %>%
 resumen_global_upe <- tibble::tibble(
   categoria = "global",
   total = nrow(registros_completos),
-  aprobados = sum(registros_completos$revision_upe == "aprobado", na.rm = TRUE),
-  rechazados = sum(registros_completos$revision_upe == "no aprobado", na.rm = TRUE),
+  aprobados = sum(registros_completos$revision_upe == "aceptado", na.rm = TRUE),
+  rechazados = sum(registros_completos$revision_upe == "rechazado", na.rm = TRUE),
   por_revisar = sum(registros_completos$revision_upe == "", na.rm = TRUE)
 )
 
