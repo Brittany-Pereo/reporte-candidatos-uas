@@ -46,9 +46,9 @@ lista_hojas <- lapply(nombres_hojas, function(hoja) {
 
 names(lista_hojas) <- janitor::make_clean_names(nombres_hojas)
 
-#==============================
+# ==============================
 # REGISTROS
-#==============================
+# ==============================
 
 registros_completos <- lista_hojas[[1]] %>% 
   mutate(
@@ -62,9 +62,9 @@ registros_incompletos <- lista_hojas[[2]] %>%
   clean_names() %>% 
   filter(!is.na(faltantes))
 
-#==============================
+# ==============================
 # UPE
-#==============================
+# ==============================
 
 url_sheet_upe <- "https://docs.google.com/spreadsheets/d/1iSEdYOU1uDF7Gwnu0o9ABR9hv3pI1INnrJv2Yt9jbN0/edit?gid=0#gid=0"
 
@@ -106,12 +106,11 @@ registros_completos <- registros_completos %>%
     upe = tidyr::replace_na(upe, "")
   )
 
-#==============================
-# BASE SOLO PARA DETALLE
-# (SIN "OTRO")
-#==============================
+# ==============================
+# CATEGORÍAS
+# ==============================
 
-registros_detalle <- registros_completos %>% 
+registros_completos <- registros_completos %>% 
   mutate(
     categoria = case_when(
       str_detect(cnpm, "^ME") ~ "med_especi",
@@ -119,12 +118,29 @@ registros_detalle <- registros_completos %>%
       str_detect(cnpm, "^EN") ~ "enf",
       TRUE ~ "otro"
     )
-  ) %>% 
+  )
+
+# Esta base mantiene todos, incluyendo "otro"
+# Se usa para la distribución superior
+resumen_distribucion <- registros_completos %>% 
+  count(categoria, name = "total")
+
+valor_distribucion <- function(cat) {
+  valor <- resumen_distribucion %>% 
+    filter(categoria == cat) %>% 
+    pull(total)
+  
+  if (length(valor) == 0) 0 else valor
+}
+
+# Esta base se usa desde "Detalle de registros completos" hacia abajo
+# Excluye la categoría "otro"
+registros_detalle <- registros_completos %>% 
   filter(categoria != "otro")
 
-#==============================
+# ==============================
 # RESUMEN GENERAL
-#==============================
+# ==============================
 
 resumen_registros <- tibble::tibble(
   estatus = c("Registros completos", "Registros incompletos"),
@@ -152,9 +168,9 @@ fecha_actualizacion <- format(
 pct_completos <- nrow(registros_completos) / total_registros
 pct_incompletos <- nrow(registros_incompletos) / total_registros
 
-#==============================
-# REVISION UAS
-#==============================
+# ==============================
+# REVISIÓN UAS GLOBAL
+# ==============================
 
 resumen_revision_uas <- registros_completos %>% 
   mutate(
@@ -162,20 +178,9 @@ resumen_revision_uas <- registros_completos %>%
     revision_uas = tidyr::replace_na(revision_uas, "")
   ) %>% 
   summarise(
-    aprobados = sum(
-      revision_uas == "aprobado",
-      na.rm = TRUE
-    ),
-    
-    rechazados = sum(
-      revision_uas == "no aprobado",
-      na.rm = TRUE
-    ),
-    
-    por_revisar = sum(
-      revision_uas == "",
-      na.rm = TRUE
-    )
+    aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
+    rechazados = sum(revision_uas == "no aprobado", na.rm = TRUE),
+    por_revisar = sum(revision_uas == "", na.rm = TRUE)
   )
 
 total_aprobados <- resumen_revision_uas$aprobados
@@ -190,9 +195,9 @@ pct_aprobados_completos <- total_aprobados / nrow(registros_completos)
 pct_rechazados_completos <- total_rechazados / nrow(registros_completos)
 pct_por_revisar_completos <- total_por_revisar / nrow(registros_completos)
 
-#==============================
+# ==============================
 # ENTIDADES
-#==============================
+# ==============================
 
 entidades_imb <- c(
   "Baja California",
@@ -222,22 +227,12 @@ entidades_imb <- c(
 
 revision_estado <- registros_completos %>% 
   mutate(
-    revision_uas = str_to_lower(
-      str_squish(revision_uas)
-    )
+    revision_uas = str_to_lower(str_squish(revision_uas))
   ) %>% 
   group_by(estado) %>% 
   summarise(
-    aprobados = sum(
-      revision_uas == "aprobado",
-      na.rm = TRUE
-    ),
-    
-    rechazados = sum(
-      revision_uas == "no aprobado",
-      na.rm = TRUE
-    ),
-    
+    aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
+    rechazados = sum(revision_uas == "no aprobado", na.rm = TRUE),
     .groups = "drop"
   )
 
@@ -273,15 +268,8 @@ avance_estado <- bind_rows(
     Incompletos = tidyr::replace_na(Incompletos, 0),
     aprobados = tidyr::replace_na(aprobados, 0),
     rechazados = tidyr::replace_na(rechazados, 0),
-    
     total_registros = Completos + Incompletos,
-    
-    avance = if_else(
-      total_registros == 0,
-      0,
-      Completos / total_registros
-    ),
-    
+    avance = if_else(total_registros == 0, 0, Completos / total_registros),
     etiqueta_avance = paste0(
       percent(avance, accuracy = 1),
       "  (",
@@ -291,32 +279,25 @@ avance_estado <- bind_rows(
   ) %>% 
   arrange(avance)
 
-#==============================
+# ==============================
 # APROBADOS POR PUESTO
-#==============================
+# ==============================
 
 aprobados_clave_puesto <- registros_detalle %>% 
   mutate(
-    revision_uas = str_to_lower(
-      str_squish(revision_uas)
-    ),
-    
-    clave_puesto = str_to_title(
-      str_to_lower(clave_puesto)
-    )
+    revision_uas = str_to_lower(str_squish(revision_uas)),
+    clave_puesto = str_to_title(str_to_lower(clave_puesto))
   ) %>% 
-  filter(
-    revision_uas == "aprobado"
-  ) %>% 
+  filter(revision_uas == "aprobado") %>% 
   count(
     clave_puesto,
     name = "aprobados"
   ) %>% 
   arrange(aprobados)
 
-#==============================
+# ==============================
 # TABLAS DETALLE
-#==============================
+# ==============================
 
 tabla_unidades_base <- registros_detalle %>% 
   count(
@@ -330,11 +311,7 @@ tabla_unidades_base <- registros_detalle %>%
     values_fill = 0
   )
 
-for (col in c(
-  "med_especi",
-  "med_gen",
-  "enf"
-)) {
+for (col in c("med_especi", "med_gen", "enf")) {
   if (!col %in% names(tabla_unidades_base)) {
     tabla_unidades_base[[col]] <- 0
   }
@@ -342,56 +319,43 @@ for (col in c(
 
 tabla_unidades <- tabla_unidades_base %>% 
   mutate(
-    total_propuestas =
-      med_especi +
-      med_gen +
-      enf
+    total_propuestas = med_especi + med_gen + enf
   ) %>% 
   arrange(desc(total_propuestas))
 
-#==============================
-# RESUMEN POR CATEGORIA UAS
-#==============================
+# ==============================
+# RESUMEN POR CATEGORÍA UAS
+# ==============================
 
 resumen_por_categoria <- registros_detalle %>% 
   mutate(
-    revision_uas = str_to_lower(
-      str_squish(revision_uas)
-    ),
-    
-    revision_uas = tidyr::replace_na(
-      revision_uas,
-      ""
-    )
+    revision_uas = str_to_lower(str_squish(revision_uas)),
+    revision_uas = tidyr::replace_na(revision_uas, "")
   ) %>% 
   group_by(categoria) %>% 
   summarise(
     total = n(),
-    
-    aprobados = sum(
-      revision_uas == "aprobado",
-      na.rm = TRUE
-    ),
-    
-    rechazados = sum(
-      revision_uas == "no aprobado",
-      na.rm = TRUE
-    ),
-    
-    por_revisar = sum(
-      revision_uas == "",
-      na.rm = TRUE
-    ),
-    
+    aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
+    rechazados = sum(revision_uas == "no aprobado", na.rm = TRUE),
+    por_revisar = sum(revision_uas == "", na.rm = TRUE),
     .groups = "drop"
   )
 
 resumen_global <- tibble::tibble(
   categoria = "global",
-  total = nrow(registros_completos),
-  aprobados = total_aprobados,
-  rechazados = total_rechazados,
-  por_revisar = total_por_revisar
+  total = nrow(registros_detalle),
+  aprobados = sum(
+    str_to_lower(str_squish(registros_detalle$revision_uas)) == "aprobado",
+    na.rm = TRUE
+  ),
+  rechazados = sum(
+    str_to_lower(str_squish(registros_detalle$revision_uas)) == "no aprobado",
+    na.rm = TRUE
+  ),
+  por_revisar = sum(
+    tidyr::replace_na(str_to_lower(str_squish(registros_detalle$revision_uas)), "") == "",
+    na.rm = TRUE
+  )
 )
 
 resumen_tabs <- bind_rows(
@@ -400,35 +364,24 @@ resumen_tabs <- bind_rows(
 )
 
 valor_resumen <- function(cat, variable) {
-  resumen_tabs %>% 
+  valor <- resumen_tabs %>% 
     filter(categoria == cat) %>% 
     pull({{ variable }})
+  
+  if (length(valor) == 0) 0 else valor
 }
 
-#==============================
+# ==============================
 # RESUMEN UPE
-#==============================
+# ==============================
 
 resumen_global_upe <- datos_upe %>% 
   summarise(
     categoria = "global",
-    
     total = n(),
-    
-    aprobados = sum(
-      upe == "aceptado",
-      na.rm = TRUE
-    ),
-    
-    rechazados = sum(
-      upe == "rechazado",
-      na.rm = TRUE
-    ),
-    
-    por_revisar = sum(
-      upe == "revision",
-      na.rm = TRUE
-    )
+    aprobados = sum(upe == "aceptado", na.rm = TRUE),
+    rechazados = sum(upe == "rechazado", na.rm = TRUE),
+    por_revisar = sum(upe == "revision", na.rm = TRUE)
   )
 
 resumen_por_categoria_upe <- registros_detalle %>% 
@@ -436,22 +389,9 @@ resumen_por_categoria_upe <- registros_detalle %>%
   group_by(categoria) %>% 
   summarise(
     total = n(),
-    
-    aprobados = sum(
-      upe == "aceptado",
-      na.rm = TRUE
-    ),
-    
-    rechazados = sum(
-      upe == "rechazado",
-      na.rm = TRUE
-    ),
-    
-    por_revisar = sum(
-      upe == "revision",
-      na.rm = TRUE
-    ),
-    
+    aprobados = sum(upe == "aceptado", na.rm = TRUE),
+    rechazados = sum(upe == "rechazado", na.rm = TRUE),
+    por_revisar = sum(upe == "revision", na.rm = TRUE),
     .groups = "drop"
   )
 
@@ -461,9 +401,11 @@ resumen_tabs_upe <- bind_rows(
 )
 
 valor_resumen_upe <- function(cat, variable) {
-  resumen_tabs_upe %>% 
+  valor <- resumen_tabs_upe %>% 
     filter(categoria == cat) %>% 
     pull({{ variable }})
+  
+  if (length(valor) == 0) 0 else valor
 }
 ```
 
@@ -510,7 +452,7 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
     Personal médico general
   </p>
   <p style="font-size:38px; font-weight:800; color:#263238; margin:6px 0 0 0;">
-    `r comma(valor_resumen("med_gen", total))`
+    `r comma(valor_distribucion("med_gen"))`
   </p>
 </div>
 
@@ -519,7 +461,7 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
     Personal médico especialista
   </p>
   <p style="font-size:38px; font-weight:800; color:#263238; margin:6px 0 0 0;">
-    `r comma(valor_resumen("med_especi", total))`
+    `r comma(valor_distribucion("med_especi"))`
   </p>
 </div>
 
@@ -528,7 +470,7 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
     Personal de enfermería
   </p>
   <p style="font-size:38px; font-weight:800; color:#263238; margin:6px 0 0 0;">
-    `r comma(valor_resumen("enf", total))`
+    `r comma(valor_distribucion("enf"))`
   </p>
 </div>
 
@@ -537,7 +479,7 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
     Otros
   </p>
   <p style="font-size:38px; font-weight:800; color:#263238; margin:6px 0 0 0;">
-    `r comma(valor_resumen("otro", total))`
+    `r comma(valor_distribucion("otro"))`
   </p>
 </div>
 
