@@ -102,7 +102,8 @@ resumen_revision_uas <- registros_completos %>%
   mutate(
     revision_uas = stringr::str_to_lower(revision_uas),
     revision_uas = stringr::str_squish(revision_uas),
-    revision_uas = tidyr::replace_na(revision_uas, "")
+    por_revisar = sum(revision_uas == "" & concuerda != "",
+      na.rm = TRUE)
   ) %>% 
   summarise(
     aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
@@ -312,8 +313,8 @@ resumen_por_categoria_upe <- registros_completos %>%
     total = n(),
     aprobados = sum(revision_upe == "aceptado", na.rm = TRUE),
     rechazados = sum(revision_upe == "rechazado", na.rm = TRUE),
-    por_revisar = sum(revision_upe == "", na.rm = TRUE),
-    .groups = "drop"
+    por_revisar = sum(revision_upe == "" & concuerda != "",
+      na.rm = TRUE), .groups = "drop"
   )
 
 resumen_global_upe <- tibble::tibble(
