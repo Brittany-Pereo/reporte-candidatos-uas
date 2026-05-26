@@ -65,7 +65,12 @@ datos_upe <- read_sheet(
   )
 
 registros_completos <- registros_completos %>% 
-  mutate(clues = str_to_upper(str_squish(clues))) %>% 
+  mutate(
+    clues = str_to_upper(str_squish(clues)),
+    cnpm = str_squish(cnpm),
+    cnpm = tidyr::replace_na(cnpm, "")
+  ) %>% 
+  filter(cnpm != "") %>% 
   left_join(
     datos_upe %>% select(clues, upe),
     by = "clues"
@@ -89,7 +94,7 @@ resumen_registros <- tibble::tibble(
       comma(total), " registros\n",
       percent(porcentaje, accuracy = 1)
     )
-  )
+  ) 
 
 total_registros <- sum(resumen_registros$total)
 fecha_actualizacion <- format(Sys.time(), "%d/%m/%Y %H:%M")
@@ -105,6 +110,7 @@ resumen_revision_uas <- registros_completos %>%
     cnpm = str_squish(cnpm),
     cnpm = tidyr::replace_na(cnpm, "")
   ) %>% 
+  filter(!is.na(cnpm)) %>% 
   summarise(
     aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
     rechazados = sum(revision_uas == "no aprobado", na.rm = TRUE),
@@ -153,6 +159,7 @@ revision_estado <- registros_completos %>%
     revision_uas = stringr::str_to_lower(revision_uas),
     revision_uas = stringr::str_squish(revision_uas)
   ) %>% 
+  filter(!is.na(cnpm)) %>% 
   group_by(estado) %>% 
   summarise(
     aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
@@ -273,6 +280,7 @@ resumen_por_categoria <- registros_completos %>%
       TRUE ~ "otro"
     )
   ) %>% 
+  filter(!is.na(cnpm)) %>% 
   group_by(categoria) %>% 
   summarise(
     total = n(),
