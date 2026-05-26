@@ -81,8 +81,7 @@ datos_upe <- read_sheet(
     upe = tidyr::replace_na(upe, "")
   ) %>% 
   filter(
-    clues != "",
-    upe %in% c("revision", "aceptado", "rechazado")
+    clues != ""
   )
 
 estatus_upe_por_clues <- datos_upe %>% 
