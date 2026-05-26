@@ -102,13 +102,13 @@ resumen_revision_uas <- registros_completos %>%
   mutate(
     revision_uas = stringr::str_to_lower(revision_uas),
     revision_uas = stringr::str_squish(revision_uas),
-    por_revisar = sum(revision_uas == "" & concuerda != "",
+    por_revisar = sum(revision_uas == "" & cnpm != "",
       na.rm = TRUE)
   ) %>% 
   summarise(
     aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
     rechazados = sum(revision_uas == "no aprobado", na.rm = TRUE),
-    por_revisar = sum(revision_uas == "", na.rm = TRUE)
+    por_revisar = sum(revision_uas == "" & cnpm != "", na.rm = TRUE)
   )
 
 total_aprobados <- resumen_revision_uas$aprobados
@@ -275,7 +275,7 @@ resumen_por_categoria <- registros_completos %>%
     total = n(),
     aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
     rechazados = sum(revision_uas == "no aprobado", na.rm = TRUE),
-    por_revisar = sum(revision_uas == "", na.rm = TRUE),
+    por_revisar = sum(revision_uas == "" & cnpm != "", na.rm = TRUE),
     .groups = "drop"
   )
 
@@ -313,7 +313,7 @@ resumen_por_categoria_upe <- registros_completos %>%
     total = n(),
     aprobados = sum(revision_upe == "aceptado", na.rm = TRUE),
     rechazados = sum(revision_upe == "rechazado", na.rm = TRUE),
-    por_revisar = sum(revision_upe == "" & concuerda != "",
+    por_revisar = sum(revision_upe == "" & cnpm != "",
       na.rm = TRUE), .groups = "drop"
   )
 
@@ -322,7 +322,7 @@ resumen_global_upe <- tibble::tibble(
   total = nrow(registros_completos),
   aprobados = sum(registros_completos$revision_upe == "aceptado", na.rm = TRUE),
   rechazados = sum(registros_completos$revision_upe == "rechazado", na.rm = TRUE),
-  por_revisar = sum(registros_completos$revision_upe == "", na.rm = TRUE)
+  por_revisar = sum(registros_completos$revision_upe == "" & registros_completos$cnpm != "", na.rm = TRUE)
 )
 
 resumen_tabs_upe <- bind_rows(resumen_global_upe, resumen_por_categoria_upe)
