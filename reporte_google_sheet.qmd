@@ -946,13 +946,46 @@ crear_tabla_dt <- function(tabla) {
     filter = "top",
     width = "100%",
     
+    class = "stripe hover compact",
+    
     options = list(
       pageLength = 10,
       autoWidth = TRUE,
-      scrollX = TRUE
+      scrollX = TRUE,
+      dom = "tip",
+      
+      language = list(
+        search = "Buscar:",
+        lengthMenu = "Mostrar _MENU_ registros",
+        
+        info = "Mostrando _START_ a _END_ de _TOTAL_ registros",
+        
+        paginate = list(
+          previous = "Anterior",
+          `next` = "Siguiente"
+        )
+      )
     ),
     
     rownames = FALSE
+  ) %>% 
+    
+    DT::formatStyle(
+      columns = names(tabla),
+      fontSize = "13px"
+    ) %>% 
+    
+    DT::formatStyle(
+      "Unidad médica",
+      fontWeight = "600"
+    )%>% 
+  
+  DT::formatStyle(
+    names(tabla)[sapply(tabla, is.character) == FALSE],
+    
+    textAlign = "center",
+    fontWeight = "700",
+    backgroundColor = "#f4fbf8"
   )
 }
 ```
