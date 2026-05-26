@@ -62,8 +62,7 @@ datos_upe <- read_sheet(
     clues = str_to_upper(str_squish(clues)),
     upe = str_to_lower(str_squish(upe)),
     upe = tidyr::replace_na(upe, "")
-  ) %>% 
-  distinct(clues, .keep_all = TRUE)
+  )
 
 registros_completos <- registros_completos %>% 
   mutate(clues = str_to_upper(str_squish(clues))) %>% 
@@ -324,33 +323,13 @@ resumen_por_categoria_upe <- registros_completos %>%
     .groups = "drop"
   )
 
-resumen_global_upe <- registros_completos %>% 
-  mutate(
-    upe = str_to_lower(str_squish(upe)),
-    upe = tidyr::replace_na(upe, ""),
-    
-    cnpm = str_squish(cnpm),
-    cnpm = tidyr::replace_na(cnpm, "")
-  ) %>% 
+resumen_global_upe <- datos_upe %>% 
   summarise(
     categoria = "global",
-    
     total = sum(upe != "", na.rm = TRUE),
-    
-    aprobados = sum(
-      upe == "aceptado",
-      na.rm = TRUE
-    ),
-    
-    rechazados = sum(
-      upe == "rechazado",
-      na.rm = TRUE
-    ),
-    
-    por_revisar = sum(
-      upe == "revision",
-      na.rm = TRUE
-    )
+    aprobados = sum(upe == "aceptado", na.rm = TRUE),
+    rechazados = sum(upe == "rechazado", na.rm = TRUE),
+    por_revisar = sum(upe == "revisión", na.rm = TRUE)
   )
 
 resumen_tabs_upe <- bind_rows(resumen_global_upe, resumen_por_categoria_upe)
