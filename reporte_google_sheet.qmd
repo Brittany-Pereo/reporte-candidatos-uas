@@ -381,7 +381,7 @@ resumen_global_upe <- datos_upe %>%
     total = n(),
     aprobados = sum(upe == "aceptado", na.rm = TRUE),
     rechazados = sum(upe == "rechazado", na.rm = TRUE),
-    por_revisar = sum(upe == "revision", na.rm = TRUE)
+    por_revisar = sum(upe == "revision"| upe == "", na.rm = TRUE)
   )
 
 resumen_por_categoria_upe <- registros_detalle %>% 
