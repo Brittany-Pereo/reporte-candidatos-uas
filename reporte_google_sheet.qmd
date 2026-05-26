@@ -49,6 +49,32 @@ names(lista_hojas) <- janitor::make_clean_names(nombres_hojas)
 #Guarda las hojas en una lista
 registros_completos <- lista_hojas[[1]]
 registros_incompletos <- lista_hojas[[2]]
+
+url_sheet_upe <- "https://docs.google.com/spreadsheets/d/1iSEdYOU1uDF7Gwnu0o9ABR9hv3pI1INnrJv2Yt9jbN0/edit?gid=0#gid=0"
+
+datos_upe <- read_sheet(
+  ss = url_sheet_upe,
+  sheet = "Hoja 1"
+) %>% 
+  clean_names() %>% 
+  select(clues, upe) %>% 
+  mutate(
+    clues = str_to_upper(str_squish(clues)),
+    revision_upe = str_to_lower(str_squish(upe)),
+    revision_upe = tidyr::replace_na(revision_upe, "")
+  ) %>% 
+  distinct(clues, .keep_all = TRUE)
+
+registros_completos <- registros_completos %>% 
+  mutate(clues = str_to_upper(str_squish(clues))) %>% 
+  left_join(
+    datos_upe %>% select(clues, revision_upe),
+    by = "clues"
+  ) %>% 
+  mutate(
+    revision_upe = tidyr::replace_na(revision_upe, "")
+  )
+
 #Sacamos un resumen general
 resumen_registros <- tibble::tibble(
   estatus = c("Registros completos", "Registros incompletos"),
@@ -264,6 +290,44 @@ resumen_tabs <- bind_rows(resumen_global, resumen_por_categoria)
 
 valor_resumen <- function(cat, variable) {
   resumen_tabs %>% 
+    filter(categoria == cat) %>% 
+    pull({{ variable }})
+}
+
+resumen_por_categoria_upe <- registros_completos %>% 
+  mutate(
+    revision_upe = str_to_lower(revision_upe),
+    revision_upe = str_squish(revision_upe),
+    revision_upe = tidyr::replace_na(revision_upe, ""),
+    
+    categoria = case_when(
+      str_detect(cnpm, "^ME") ~ "med_especi",
+      str_detect(cnpm, "^MG") ~ "med_gen",
+      str_detect(cnpm, "^EN") ~ "enf",
+      TRUE ~ "otro"
+    )
+  ) %>% 
+  group_by(categoria) %>% 
+  summarise(
+    total = n(),
+    aprobados = sum(revision_upe == "aprobado", na.rm = TRUE),
+    rechazados = sum(revision_upe == "no aprobado", na.rm = TRUE),
+    por_revisar = sum(revision_upe == "", na.rm = TRUE),
+    .groups = "drop"
+  )
+
+resumen_global_upe <- tibble::tibble(
+  categoria = "global",
+  total = nrow(registros_completos),
+  aprobados = sum(registros_completos$revision_upe == "aprobado", na.rm = TRUE),
+  rechazados = sum(registros_completos$revision_upe == "no aprobado", na.rm = TRUE),
+  por_revisar = sum(registros_completos$revision_upe == "", na.rm = TRUE)
+)
+
+resumen_tabs_upe <- bind_rows(resumen_global_upe, resumen_por_categoria_upe)
+
+valor_resumen_upe <- function(cat, variable) {
+  resumen_tabs_upe %>% 
     filter(categoria == cat) %>% 
     pull({{ variable }})
 }
@@ -496,147 +560,274 @@ Los porcentajes de Aprobados, Rechazados y Por revisar se calculan respecto al t
 ```
 ```
 
+## Resumen por estatus UPE
 
-## Avance de registros completos 
-<details open>
-<summary><b>Registros completos por estado</b></summary>
+<div style="display:grid; gap:24px; margin-top:18px;">
 
-```{r}
-#| fig-width: 9
-#| fig-height: 7
+<!-- GLOBAL -->
+<div style="background:#f8fafc; border:1px solid #e5e7eb; padding:24px; border-radius:20px;">
+<h3 style="margin:0 0 18px 0; color:#263238; font-size:24px;">Global</h3>
 
-ggplot(
-  avance_estado,
-  aes(
-    x = reorder(estado, avance),
-    y = avance
-  )
-) +
-  
-  geom_col(
-    fill = "#d9efe6",
-    width = 0.75
-  ) +
-  
-  geom_col(
-    aes(
-      y = dplyr::if_else(
-        total_registros == 0,
-        0,
-        rechazados / total_registros
-      )
-    ),
-    fill = "#A02142",
-    width = 0.75
-  ) +
-  
-  geom_col(
-    aes(
-      y = dplyr::if_else(
-        total_registros == 0,
-        0,
-        aprobados / total_registros
-      )
-    ),
-    fill = "#1E5B4F",
-    width = 0.75
-  ) +
-  
-  geom_text(
-    aes(label = etiqueta_avance),
-    hjust = -0.05,
-    size = 3.1
-  ) +
-  
-  geom_text(
-  aes(
-    y = dplyr::if_else(
-      total_registros == 0,
-      0,
-      rechazados / total_registros
-    ),
-    label = dplyr::if_else(
-      rechazados > 0,
-      comma(rechazados),
-      ""
-    )
-  ),
-  hjust = 1.1,
-  color = "white",
-  size = 2.7,
-  fontface = "bold"
-) +
-  
-  geom_text(
-  aes(
-    y = dplyr::if_else(
-      total_registros == 0,
-      0,
-      aprobados / total_registros
-    ),
-    label = dplyr::if_else(
-      aprobados > 0,
-      comma(aprobados),
-      ""
-    )
-  ),
-  hjust = 1.1,
-  color = "white",
-  size = 2.7,
-  fontface = "bold"
-) +
-  
-  coord_flip() +
-  
-scale_y_continuous(
-  labels = \(x) percent(x, accuracy = 1),
-  limits = c(0, 1.18)
-)+
-  
-labs(
-  title = "",
-  caption = paste0(
-    "<span style='color:#d9efe6;'>■</span> Registros completos&nbsp;&nbsp;&nbsp;",
-    "<span style='color:#1E5B4F;'>■</span> Candidatos aprobados UAS&nbsp;&nbsp;&nbsp;",
-    "<span style='color:#A02142;'>■</span> Candidatos no aprobados UAS"
-  ),
-  x = NULL,
-  y = "Avance"
-) +
-  
-  theme_minimal() +
-  
-theme(
-  plot.title = element_text(
-    face = "bold",
-    size = 18
-  ),
-  
-  plot.subtitle = element_text(
-    size = 12
-  ),
-  
-  axis.text.y = element_text(
-    size = 12
-  ),
-  
-  axis.text.x = element_text(
-    size = 11
-  ),
-  
-  axis.title.x = element_text(
-    size = 13
-  ),
-plot.caption = ggtext::element_markdown(
-  size = 11,
-  hjust = 0,
-  margin = margin(t = 15)
-),
-  
-  panel.grid.major.y = element_blank()
-)
-```
-</details>
+<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:18px;">
+
+<div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Aprobados UPE</p>
+<p style="font-size:38px; font-weight:800; color:#1E5B4F; margin:18px 0 0 0;">
+`r comma(valor_resumen_upe("global", aprobados))`
+</p>
+</div>
+
+<div style="background-color:#fffaf0; border:1px solid #f1d58a; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Por revisar UPE</p>
+<p style="font-size:38px; font-weight:800; color:#9A6B00; margin:18px 0 0 0;">
+`r comma(valor_resumen_upe("global", por_revisar))`
+</p>
+</div>
+
+<div style="background-color:#fff6f7; border:1px solid #f0cfd6; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Rechazados UPE</p>
+<p style="font-size:38px; font-weight:800; color:#A02142; margin:18px 0 0 0;">
+`r comma(valor_resumen_upe("global", rechazados))`
+</p>
+</div>
+
+</div>
+</div>
+
+
+<!-- MÉDICOS GENERALES -->
+<div style="background:#f8fafc; border:1px solid #e5e7eb; padding:24px; border-radius:20px;">
+<h3 style="margin:0 0 18px 0; color:#263238; font-size:24px;">Médicos generales</h3>
+
+<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:18px;">
+
+<div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Aprobados UPE</p>
+<p style="font-size:38px; font-weight:800; color:#1E5B4F; margin:18px 0 0 0;">
+`r comma(valor_resumen_upe("med_gen", aprobados))`
+</p>
+</div>
+
+<div style="background-color:#fffaf0; border:1px solid #f1d58a; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Por revisar UPE</p>
+<p style="font-size:38px; font-weight:800; color:#9A6B00; margin:18px 0 0 0;">
+`r comma(valor_resumen_upe("med_gen", por_revisar))`
+</p>
+</div>
+
+<div style="background-color:#fff6f7; border:1px solid #f0cfd6; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Rechazados UPE</p>
+<p style="font-size:38px; font-weight:800; color:#A02142; margin:18px 0 0 0;">
+`r comma(valor_resumen_upe("med_gen", rechazados))`
+</p>
+</div>
+
+</div>
+</div>
+
+
+<!-- MÉDICOS ESPECIALISTAS -->
+<div style="background:#f8fafc; border:1px solid #e5e7eb; padding:24px; border-radius:20px;">
+<h3 style="margin:0 0 18px 0; color:#263238; font-size:24px;">Médicos especialistas</h3>
+
+<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:18px;">
+
+<div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Aprobados UPE</p>
+<p style="font-size:38px; font-weight:800; color:#1E5B4F; margin:18px 0 0 0;">
+`r comma(valor_resumen_upe("med_especi", aprobados))`
+</p>
+</div>
+
+<div style="background-color:#fffaf0; border:1px solid #f1d58a; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Por revisar UPE</p>
+<p style="font-size:38px; font-weight:800; color:#9A6B00; margin:18px 0 0 0;">
+`r comma(valor_resumen_upe("med_especi", por_revisar))`
+</p>
+</div>
+
+<div style="background-color:#fff6f7; border:1px solid #f0cfd6; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Rechazados UPE</p>
+<p style="font-size:38px; font-weight:800; color:#A02142; margin:18px 0 0 0;">
+`r comma(valor_resumen_upe("med_especi", rechazados))`
+</p>
+</div>
+
+</div>
+</div>
+
+
+<!-- ENFERMERÍA -->
+<div style="background:#f8fafc; border:1px solid #e5e7eb; padding:24px; border-radius:20px;">
+<h3 style="margin:0 0 18px 0; color:#263238; font-size:24px;">Enfermería</h3>
+
+<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:18px;">
+
+<div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Aprobados UPE</p>
+<p style="font-size:38px; font-weight:800; color:#1E5B4F; margin:18px 0 0 0;">
+`r comma(valor_resumen_upe("enf", aprobados))`
+</p>
+</div>
+
+<div style="background-color:#fffaf0; border:1px solid #f1d58a; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Por revisar UPE</p>
+<p style="font-size:38px; font-weight:800; color:#9A6B00; margin:18px 0 0 0;">
+`r comma(valor_resumen_upe("enf", por_revisar))`
+</p>
+</div>
+
+<div style="background-color:#fff6f7; border:1px solid #f0cfd6; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Rechazados UPE</p>
+<p style="font-size:38px; font-weight:800; color:#A02142; margin:18px 0 0 0;">
+`r comma(valor_resumen_upe("enf", rechazados))`
+</p>
+</div>
+
+</div>
+</div>
+
+</div>
+<!-- ## Avance de registros completos  -->
+<!-- <details open> -->
+<!-- <summary><b>Registros completos por estado</b></summary> -->
+
+<!-- ```{r} -->
+<!-- #| fig-width: 9 -->
+<!-- #| fig-height: 7 -->
+
+<!-- ggplot( -->
+<!--   avance_estado, -->
+<!--   aes( -->
+<!--     x = reorder(estado, avance), -->
+<!--     y = avance -->
+<!--   ) -->
+<!-- ) + -->
+
+<!--   geom_col( -->
+<!--     fill = "#d9efe6", -->
+<!--     width = 0.75 -->
+<!--   ) + -->
+
+<!--   geom_col( -->
+<!--     aes( -->
+<!--       y = dplyr::if_else( -->
+<!--         total_registros == 0, -->
+<!--         0, -->
+<!--         rechazados / total_registros -->
+<!--       ) -->
+<!--     ), -->
+<!--     fill = "#A02142", -->
+<!--     width = 0.75 -->
+<!--   ) + -->
+
+<!--   geom_col( -->
+<!--     aes( -->
+<!--       y = dplyr::if_else( -->
+<!--         total_registros == 0, -->
+<!--         0, -->
+<!--         aprobados / total_registros -->
+<!--       ) -->
+<!--     ), -->
+<!--     fill = "#1E5B4F", -->
+<!--     width = 0.75 -->
+<!--   ) + -->
+
+<!--   geom_text( -->
+<!--     aes(label = etiqueta_avance), -->
+<!--     hjust = -0.05, -->
+<!--     size = 3.1 -->
+<!--   ) + -->
+
+<!--   geom_text( -->
+<!--   aes( -->
+<!--     y = dplyr::if_else( -->
+<!--       total_registros == 0, -->
+<!--       0, -->
+<!--       rechazados / total_registros -->
+<!--     ), -->
+<!--     label = dplyr::if_else( -->
+<!--       rechazados > 0, -->
+<!--       comma(rechazados), -->
+<!--       "" -->
+<!--     ) -->
+<!--   ), -->
+<!--   hjust = 1.1, -->
+<!--   color = "white", -->
+<!--   size = 2.7, -->
+<!--   fontface = "bold" -->
+<!-- ) + -->
+
+<!--   geom_text( -->
+<!--   aes( -->
+<!--     y = dplyr::if_else( -->
+<!--       total_registros == 0, -->
+<!--       0, -->
+<!--       aprobados / total_registros -->
+<!--     ), -->
+<!--     label = dplyr::if_else( -->
+<!--       aprobados > 0, -->
+<!--       comma(aprobados), -->
+<!--       "" -->
+<!--     ) -->
+<!--   ), -->
+<!--   hjust = 1.1, -->
+<!--   color = "white", -->
+<!--   size = 2.7, -->
+<!--   fontface = "bold" -->
+<!-- ) + -->
+
+<!--   coord_flip() + -->
+
+<!-- scale_y_continuous( -->
+<!--   labels = \(x) percent(x, accuracy = 1), -->
+<!--   limits = c(0, 1.18) -->
+<!-- )+ -->
+
+<!-- labs( -->
+<!--   title = "", -->
+<!--   caption = paste0( -->
+<!--     "<span style='color:#d9efe6;'>■</span> Registros completos&nbsp;&nbsp;&nbsp;", -->
+<!--     "<span style='color:#1E5B4F;'>■</span> Candidatos aprobados UAS&nbsp;&nbsp;&nbsp;", -->
+<!--     "<span style='color:#A02142;'>■</span> Candidatos no aprobados UAS" -->
+<!--   ), -->
+<!--   x = NULL, -->
+<!--   y = "Avance" -->
+<!-- ) + -->
+
+<!--   theme_minimal() + -->
+
+<!-- theme( -->
+<!--   plot.title = element_text( -->
+<!--     face = "bold", -->
+<!--     size = 18 -->
+<!--   ), -->
+
+<!--   plot.subtitle = element_text( -->
+<!--     size = 12 -->
+<!--   ), -->
+
+<!--   axis.text.y = element_text( -->
+<!--     size = 12 -->
+<!--   ), -->
+
+<!--   axis.text.x = element_text( -->
+<!--     size = 11 -->
+<!--   ), -->
+
+<!--   axis.title.x = element_text( -->
+<!--     size = 13 -->
+<!--   ), -->
+<!-- plot.caption = ggtext::element_markdown( -->
+<!--   size = 11, -->
+<!--   hjust = 0, -->
+<!--   margin = margin(t = 15) -->
+<!-- ), -->
+
+<!--   panel.grid.major.y = element_blank() -->
+<!-- ) -->
+<!-- ``` -->
+<!-- </details> -->
 
 ## Tabla de unidades médicas
 
