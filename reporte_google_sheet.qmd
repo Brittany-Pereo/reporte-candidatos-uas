@@ -712,6 +712,8 @@ Los porcentajes de Aprobados, Rechazados y Por revisar se calculan respecto al t
 
 ## Tabla de unidades médicas
 
+## Tabla de unidades médicas
+
 ```{r}
 tabla_unidades <- registros_detalle %>% 
   mutate(
@@ -726,20 +728,12 @@ tabla_unidades <- registros_detalle %>%
   ) %>% 
   summarise(
     propuestas = n(),
-    
-    aprobados_uas = sum(
-      revision_uas == "aprobado",
-      na.rm = TRUE
-    ),
-    
+    aprobados_uas = sum(revision_uas == "aprobado", na.rm = TRUE),
     .groups = "drop"
   ) %>% 
   tidyr::pivot_wider(
     names_from = categoria,
-    values_from = c(
-      propuestas,
-      aprobados_uas
-    ),
+    values_from = c(propuestas, aprobados_uas),
     values_fill = 0
   )
 
@@ -749,11 +743,7 @@ tabla_upe_unidades <- datos_upe %>%
     categoria
   ) %>% 
   summarise(
-    aprobados_upe = sum(
-      upe == "aceptado",
-      na.rm = TRUE
-    ),
-    
+    aprobados_upe = sum(upe == "aceptado", na.rm = TRUE),
     .groups = "drop"
   ) %>% 
   tidyr::pivot_wider(
@@ -773,11 +763,9 @@ columnas_necesarias <- c(
   "propuestas_med_especi",
   "propuestas_med_gen",
   "propuestas_enf",
-  
   "aprobados_uas_med_especi",
   "aprobados_uas_med_gen",
   "aprobados_uas_enf",
-  
   "aprobados_upe_med_especi",
   "aprobados_upe_med_gen",
   "aprobados_upe_enf"
@@ -791,6 +779,11 @@ for (col in columnas_necesarias) {
 
 tabla_unidades <- tabla_unidades %>% 
   mutate(
+    across(
+      all_of(columnas_necesarias),
+      ~ tidyr::replace_na(.x, 0)
+    ),
+    
     total_propuestas =
       propuestas_med_especi +
       propuestas_med_gen +
@@ -807,6 +800,92 @@ tabla_unidades <- tabla_unidades %>%
       aprobados_upe_enf
   ) %>% 
   arrange(desc(total_propuestas))
+
+crear_detalle_html <- function(df) {
+  if (nrow(df) == 0) {
+    return("<em>Sin registros</em>")
+  }
+  
+  df %>% 
+    mutate(
+      cnpm = tidyr::replace_na(cnpm, ""),
+      clave_puesto = tidyr::replace_na(clave_puesto, "")
+    ) %>% 
+    count(cnpm, clave_puesto, name = "total") %>% 
+    arrange(desc(total)) %>% 
+    mutate(
+      fila = paste0(
+        "<tr>",
+        "<td>", cnpm, "</td>",
+        "<td>", clave_puesto, "</td>",
+        "<td style='text-align:right;'>", total, "</td>",
+        "</tr>"
+      )
+    ) %>% 
+    summarise(
+      html = paste0(
+        "<div style='padding:10px 18px; background:#f8fafc; border:1px solid #e5e7eb; border-radius:10px;'>",
+        "<b>Desglose por CNPM y clave de puesto</b>",
+        "<table style='width:100%; margin-top:8px; border-collapse:collapse;'>",
+        "<thead>",
+        "<tr>",
+        "<th style='text-align:left; border-bottom:1px solid #ddd;'>CNPM</th>",
+        "<th style='text-align:left; border-bottom:1px solid #ddd;'>Clave puesto</th>",
+        "<th style='text-align:right; border-bottom:1px solid #ddd;'>Total</th>",
+        "</tr>",
+        "</thead>",
+        "<tbody>",
+        paste(fila, collapse = ""),
+        "</tbody>",
+        "</table>",
+        "</div>"
+      )
+    ) %>% 
+    pull(html)
+}
+
+callback_detalle <- DT::JS(
+  "table.on('click', 'td.details-control', function(){",
+  "  var tr = $(this).closest('tr');",
+  "  var row = table.row(tr);",
+  "  if(row.child.isShown()){",
+  "    row.child.hide();",
+  "    tr.removeClass('shown');",
+  "    $(this).html('+');",
+  "  } else {",
+  "    row.child(row.data()[row.data().length - 1]).show();",
+  "    tr.addClass('shown');",
+  "    $(this).html('-');",
+  "  }",
+  "});"
+)
+
+crear_tabla_dt <- function(tabla) {
+  DT::datatable(
+    tabla,
+    escape = FALSE,
+    filter = "top",
+    width = "100%",
+    options = list(
+      pageLength = 10,
+      autoWidth = TRUE,
+      scrollX = TRUE,
+      columnDefs = list(
+        list(
+          visible = FALSE,
+          targets = ncol(tabla) - 1
+        ),
+        list(
+          className = "details-control",
+          targets = 0,
+          orderable = FALSE
+        )
+      )
+    ),
+    callback = callback_detalle,
+    rownames = FALSE
+  )
+}
 ```
 
 ::: {.panel-tabset}
@@ -814,105 +893,130 @@ tabla_unidades <- tabla_unidades %>%
 ## Global
 
 ```{r}
-tabla_totales <- tabla_unidades %>% 
-  mutate(unidad_medica = stringr::str_to_title(unidad_medica)) %>% 
-select(
-  Estado = estado,
-  CLUES = clues,
-  `Unidad médica` = unidad_medica,
-  `Total propuestas` = total_propuestas,
-  `Total aprobados UAS` = total_aprobados_uas,
-  `Total aprobados UPE` = total_aprobados_upe
-)
+detalle_global <- registros_detalle %>% 
+  group_by(clues) %>% 
+  group_modify(~ tibble::tibble(
+    detalle_html = crear_detalle_html(.x)
+  )) %>% 
+  ungroup()
 
-DT::datatable(
-  tabla_totales,
-  filter = "top",
-  width = "100%",
-  options = list(
-    pageLength = 10,
-    autoWidth = TRUE,
-    scrollX = TRUE
-  ),
-  rownames = FALSE
-)
+tabla_totales <- tabla_unidades %>% 
+  mutate(
+    unidad_medica = str_to_title(unidad_medica)
+  ) %>% 
+  left_join(
+    detalle_global,
+    by = "clues"
+  ) %>% 
+  transmute(
+    Detalle = "+",
+    Estado = estado,
+    CLUES = clues,
+    `Unidad médica` = unidad_medica,
+    `Total propuestas` = total_propuestas,
+    `Total aprobados UAS` = total_aprobados_uas,
+    `Total aprobados UPE` = total_aprobados_upe,
+    detalle_html = detalle_html
+  )
+
+crear_tabla_dt(tabla_totales)
 ```
 ## Médicos generales
-
 ```{r}
-tabla_med_gen <- tabla_unidades %>% 
-select(
-  Estado = estado,
-  CLUES = clues,
-  `Unidad médica` = unidad_medica,
-  `Médicos generales propuestos` = propuestas_med_gen,
-  `Médicos generales aprobados UAS` = aprobados_uas_med_gen,
-  `Médicos generales aprobados UPE` = aprobados_upe_med_gen
-)
+detalle_med_gen <- registros_detalle %>% 
+  filter(categoria == "med_gen") %>% 
+  group_by(clues) %>% 
+  group_modify(~ tibble::tibble(
+    detalle_html = crear_detalle_html(.x)
+  )) %>% 
+  ungroup()
 
-DT::datatable(
-  tabla_med_gen,
-  filter = "top",
-  width = "100%",
-  options = list(
-    pageLength = 10,
-    autoWidth = TRUE,
-    scrollX = TRUE
-  ),
-  rownames = FALSE
-)
+tabla_med_gen <- tabla_unidades %>% 
+  mutate(
+    unidad_medica = str_to_title(unidad_medica)
+  ) %>% 
+  left_join(
+    detalle_med_gen,
+    by = "clues"
+  ) %>% 
+  transmute(
+    Detalle = "+",
+    Estado = estado,
+    CLUES = clues,
+    `Unidad médica` = unidad_medica,
+    `Médicos generales propuestos` = propuestas_med_gen,
+    `Médicos generales aprobados UAS` = aprobados_uas_med_gen,
+    `Médicos generales aprobados UPE` = aprobados_upe_med_gen,
+    detalle_html = detalle_html
+  )
+
+crear_tabla_dt(tabla_med_gen)
 ```
 
 ## Médicos especialistas
 
 ```{r}
-tabla_med_especi <- tabla_unidades %>% 
-select(
-  Estado = estado,
-  CLUES = clues,
-  `Unidad médica` = unidad_medica,
-  `Médicos especialistas propuestos` = propuestas_med_especi,
-  `Médicos especialistas aprobados UAS` = aprobados_uas_med_especi,
-  `Médicos especialistas aprobados UPE` = aprobados_upe_med_especi
-)
+detalle_med_especi <- registros_detalle %>% 
+  filter(categoria == "med_especi") %>% 
+  group_by(clues) %>% 
+  group_modify(~ tibble::tibble(
+    detalle_html = crear_detalle_html(.x)
+  )) %>% 
+  ungroup()
 
-DT::datatable(
-  tabla_med_especi,
-  filter = "top",
-  width = "100%",
-  options = list(
-    pageLength = 10,
-    autoWidth = TRUE,
-    scrollX = TRUE
-  ),
-  rownames = FALSE
-)
+tabla_med_especi <- tabla_unidades %>% 
+  mutate(
+    unidad_medica = str_to_title(unidad_medica)
+  ) %>% 
+  left_join(
+    detalle_med_especi,
+    by = "clues"
+  ) %>% 
+  transmute(
+    Detalle = "+",
+    Estado = estado,
+    CLUES = clues,
+    `Unidad médica` = unidad_medica,
+    `Médicos especialistas propuestos` = propuestas_med_especi,
+    `Médicos especialistas aprobados UAS` = aprobados_uas_med_especi,
+    `Médicos especialistas aprobados UPE` = aprobados_upe_med_especi,
+    detalle_html = detalle_html
+  )
+
+crear_tabla_dt(tabla_med_especi)
 ```
 
 ## Enfermería
 
 ```{r}
-tabla_enf <- tabla_unidades %>% 
-select(
-  Estado = estado,
-  CLUES = clues,
-  `Unidad médica` = unidad_medica,
-  `Enfermería propuestas` = propuestas_enf,
-  `Enfermería aprobadas UAS` = aprobados_uas_enf,
-  `Enfermería aprobadas UPE` = aprobados_upe_enf
-)
+detalle_enf <- registros_detalle %>% 
+  filter(categoria == "enf") %>% 
+  group_by(clues) %>% 
+  group_modify(~ tibble::tibble(
+    detalle_html = crear_detalle_html(.x)
+  )) %>% 
+  ungroup()
 
-DT::datatable(
-  tabla_enf,
-  filter = "top",
-  width = "100%",
-  options = list(
-    pageLength = 10,
-    autoWidth = TRUE,
-    scrollX = TRUE
-  ),
-  rownames = FALSE
-)
+tabla_enf <- tabla_unidades %>% 
+  mutate(
+    unidad_medica = str_to_title(unidad_medica)
+  ) %>% 
+  left_join(
+    detalle_enf,
+    by = "clues"
+  ) %>% 
+  transmute(
+    Detalle = "+",
+    Estado = estado,
+    CLUES = clues,
+    `Unidad médica` = unidad_medica,
+    `Enfermería propuestas` = propuestas_enf,
+    `Enfermería aprobadas UAS` = aprobados_uas_enf,
+    `Enfermería aprobadas UPE` = aprobados_upe_enf,
+    detalle_html = detalle_html
+  )
+
+crear_tabla_dt(tabla_enf)
 ```
 
 
