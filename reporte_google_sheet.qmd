@@ -70,6 +70,18 @@ datos_upe <- read_sheet(
   ) %>% 
   distinct(clues, upe)
 
+estatus_upe_por_clues <- datos_upe %>% 
+  group_by(clues) %>% 
+  summarise(
+    upe = case_when(
+      any(upe == "aceptado") ~ "aceptado",
+      any(upe == "rechazado") ~ "rechazado",
+      any(upe == "revision") ~ "revision",
+      TRUE ~ ""
+    ),
+    .groups = "drop"
+  )
+
 registros_completos <- registros_completos %>% 
   mutate(
     clues = str_to_upper(str_squish(clues)),
@@ -77,10 +89,10 @@ registros_completos <- registros_completos %>%
     cnpm = tidyr::replace_na(cnpm, "")
   ) %>% 
   filter(cnpm != "") %>% 
-  left_join(
-    datos_upe %>% select(clues, upe),
-    by = "clues"
-  ) %>% 
+left_join(
+  estatus_upe_por_clues,
+  by = "clues"
+) %>% 
   mutate(
     upe = tidyr::replace_na(upe, "")
   )
