@@ -89,6 +89,8 @@ estatus_upe_por_clues <- datos_upe %>%
   )
 
 registros_completos <- registros_completos %>% 
+  janitor::clean_names() %>% 
+  filter(!is.na(cnpm)) %>% 
   left_join(
     estatus_upe_por_clues,
     by = "clues"
@@ -96,6 +98,10 @@ registros_completos <- registros_completos %>%
   mutate(
     upe = tidyr::replace_na(upe, "")
   )
+
+registros_incompletos <- registros_incompletos %>% 
+   janitor::clean_names() %>% 
+  filter(!is.na(faltantes))
 
 resumen_registros <- tibble::tibble(
   estatus = c("Registros completos", "Registros incompletos"),
@@ -204,7 +210,7 @@ tabla_unidades_base <- registros_completos %>%
   mutate(
     categoria = case_when(
       str_detect(str_to_lower(clave_puesto), "medicina interna|medico especialista|medica especialista|especialista") ~ "med_especi",
-      str_detect(str_to_lower(clave_puesto), "medico general|medica general") ~ "med_gen",
+      str_detect(str_to_lower(clave_puesto), "medico general|medica general|medicina general") ~ "med_gen",
       str_detect(str_to_lower(clave_puesto), "enfermera|enfermeria|auxiliar") ~ "enf",
       TRUE ~ "otro"
     )
