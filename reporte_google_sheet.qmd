@@ -846,20 +846,22 @@ tabla_unidades <- registros_completos %>%
   ) %>% 
   filter(categoria != "otro") %>% 
   group_by(estado, clues, unidad_medica, categoria) %>% 
-  summarise(
-    propuestas = n(),
-    aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
-    .groups = "drop"
-  ) %>% 
-  tidyr::pivot_wider(
-    names_from = categoria,
-    values_from = c(propuestas, aprobados),
-    values_fill = 0
-  )
+summarise(
+  propuestas = n(),
+  aprobados_uas = sum(revision_uas == "aprobado", na.rm = TRUE),
+  aprobados_upe = sum(revision_upe == "aprobado", na.rm = TRUE),
+  .groups = "drop"
+) %>% 
+tidyr::pivot_wider(
+  names_from = categoria,
+  values_from = c(propuestas, aprobados_uas, aprobados_upe),
+  values_fill = 0
+)
 
 columnas_necesarias <- c(
   "propuestas_med_especi", "propuestas_med_gen", "propuestas_enf",
-  "aprobados_med_especi", "aprobados_med_gen", "aprobados_enf"
+  "aprobados_uas_med_especi", "aprobados_uas_med_gen", "aprobados_uas_enf",
+  "aprobados_upe_med_especi", "aprobados_upe_med_gen", "aprobados_upe_enf"
 )
 
 for (col in columnas_necesarias) {
@@ -869,7 +871,8 @@ for (col in columnas_necesarias) {
 tabla_unidades <- tabla_unidades %>% 
   mutate(
     total_propuestas = propuestas_med_especi + propuestas_med_gen + propuestas_enf,
-    total_aprobados = aprobados_med_especi + aprobados_med_gen + aprobados_enf
+    total_aprobados_uas = aprobados_uas_med_especi + aprobados_uas_med_gen + aprobados_uas_enf,
+    total_aprobados_upe = aprobados_upe_med_especi + aprobados_upe_med_gen + aprobados_upe_enf
   ) %>% 
   arrange(desc(total_propuestas))
 ```
@@ -881,13 +884,14 @@ tabla_unidades <- tabla_unidades %>%
 ```{r}
 tabla_totales <- tabla_unidades %>% 
   mutate(unidad_medica = stringr::str_to_title(unidad_medica)) %>% 
-  select(
-    Estado = estado,
-    CLUES = clues,
-    `Unidad médica` = unidad_medica,
-    `Total propuestas` = total_propuestas,
-    `Total aprobados` = total_aprobados
-  )
+select(
+  Estado = estado,
+  CLUES = clues,
+  `Unidad médica` = unidad_medica,
+  `Total propuestas` = total_propuestas,
+  `Total aprobados UAS` = total_aprobados_uas,
+  `Total aprobados UPE` = total_aprobados_upe
+)
 
 DT::datatable(
   tabla_totales,
@@ -905,13 +909,14 @@ DT::datatable(
 
 ```{r}
 tabla_med_gen <- tabla_unidades %>% 
-  select(
-    Estado = estado,
-    CLUES = clues,
-    `Unidad médica` = unidad_medica,
-    `Médicos generales propuestos` = propuestas_med_gen,
-    `Médicos generales aprobados` = aprobados_med_gen
-  )
+select(
+  Estado = estado,
+  CLUES = clues,
+  `Unidad médica` = unidad_medica,
+  `Médicos generales propuestos` = propuestas_med_gen,
+  `Médicos generales aprobados UAS` = aprobados_uas_med_gen,
+  `Médicos generales aprobados UPE` = aprobados_upe_med_gen
+)
 
 DT::datatable(
   tabla_med_gen,
@@ -930,13 +935,14 @@ DT::datatable(
 
 ```{r}
 tabla_med_especi <- tabla_unidades %>% 
-  select(
-    Estado = estado,
-    CLUES = clues,
-    `Unidad médica` = unidad_medica,
-    `Médicos especialistas propuestos` = propuestas_med_especi,
-    `Médicos especialistas aprobados` = aprobados_med_especi
-  )
+select(
+  Estado = estado,
+  CLUES = clues,
+  `Unidad médica` = unidad_medica,
+  `Médicos especialistas propuestos` = propuestas_med_especi,
+  `Médicos especialistas aprobados UAS` = aprobados_uas_med_especi,
+  `Médicos especialistas aprobados UPE` = aprobados_upe_med_especi
+)
 
 DT::datatable(
   tabla_med_especi,
@@ -955,13 +961,14 @@ DT::datatable(
 
 ```{r}
 tabla_enf <- tabla_unidades %>% 
-  select(
-    Estado = estado,
-    CLUES = clues,
-    `Unidad médica` = unidad_medica,
-    `Enfermería propuestas` = propuestas_enf,
-    `Enfermería aprobadas` = aprobados_enf
-  )
+select(
+  Estado = estado,
+  CLUES = clues,
+  `Unidad médica` = unidad_medica,
+  `Enfermería propuestas` = propuestas_enf,
+  `Enfermería aprobadas UAS` = aprobados_uas_enf,
+  `Enfermería aprobadas UPE` = aprobados_upe_enf
+)
 
 DT::datatable(
   tabla_enf,
