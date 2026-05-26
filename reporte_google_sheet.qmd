@@ -73,6 +73,10 @@ datos_upe <- read_sheet(
   sheet = "Hoja 1"
 ) %>% 
   clean_names() %>% 
+  filter(
+    !is.na(clues),
+    !is.na(cnpm)
+  ) %>% 
   select(clues, upe) %>% 
   mutate(
     clues = str_to_upper(str_squish(clues)),
@@ -81,8 +85,7 @@ datos_upe <- read_sheet(
     upe = tidyr::replace_na(upe, "")
   ) %>% 
   filter(
-    clues != ""
-  )
+    clues != "")
 
 estatus_upe_por_clues <- datos_upe %>% 
   group_by(clues) %>% 
@@ -90,7 +93,7 @@ estatus_upe_por_clues <- datos_upe %>%
     upe = case_when(
       any(upe == "aceptado") ~ "aceptado",
       any(upe == "rechazado") ~ "rechazado",
-      any(upe == "revision") ~ "revision",
+      any(upe == "revision"| upe == "") ~ "revision",
       TRUE ~ ""
     ),
     .groups = "drop"
