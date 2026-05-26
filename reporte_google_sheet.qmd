@@ -60,19 +60,19 @@ datos_upe <- read_sheet(
   select(clues, upe) %>% 
   mutate(
     clues = str_to_upper(str_squish(clues)),
-    revision_upe = str_to_lower(str_squish(upe)),
-    revision_upe = tidyr::replace_na(revision_upe, "")
+    upe = str_to_lower(str_squish(upe)),
+    upe = tidyr::replace_na(upe, "")
   ) %>% 
   distinct(clues, .keep_all = TRUE)
 
 registros_completos <- registros_completos %>% 
   mutate(clues = str_to_upper(str_squish(clues))) %>% 
   left_join(
-    datos_upe %>% select(clues, revision_upe),
+    datos_upe %>% select(clues, upe),
     by = "clues"
   ) %>% 
   mutate(
-    revision_upe = tidyr::replace_na(revision_upe, "")
+    upe = tidyr::replace_na(upe, "")
   )
 
 #Sacamos un resumen general
@@ -304,9 +304,9 @@ resumen_por_categoria_upe <- registros_completos %>%
     cnpm = str_squish(cnpm),
     cnpm = tidyr::replace_na(cnpm, ""),
     
-    revision_upe = str_to_lower(revision_upe),
-    revision_upe = str_squish(revision_upe),
-    revision_upe = tidyr::replace_na(revision_upe, ""),
+    upe = str_to_lower(upe),
+    upe = str_squish(upe),
+    upe = tidyr::replace_na(upe, ""),
     
     categoria = case_when(
       str_detect(cnpm, "^ME") ~ "med_especi",
@@ -318,16 +318,16 @@ resumen_por_categoria_upe <- registros_completos %>%
   group_by(categoria) %>% 
   summarise(
     total = n(),
-    aprobados = sum(revision_upe == "aceptado", na.rm = TRUE),
-    rechazados = sum(revision_upe == "rechazado", na.rm = TRUE),
-    por_revisar = sum(revision_upe == "revision", na.rm = TRUE),
+    aprobados = sum(upe == "aceptado", na.rm = TRUE),
+    rechazados = sum(upe == "rechazado", na.rm = TRUE),
+    por_revisar = sum(upe == "revision", na.rm = TRUE),
     .groups = "drop"
   )
 
 resumen_global_upe <- registros_completos %>% 
   mutate(
-    revision_upe = str_to_lower(str_squish(revision_upe)),
-    revision_upe = tidyr::replace_na(revision_upe, ""),
+    upe = str_to_lower(str_squish(upe)),
+    upe = tidyr::replace_na(upe, ""),
     
     cnpm = str_squish(cnpm),
     cnpm = tidyr::replace_na(cnpm, "")
@@ -335,20 +335,20 @@ resumen_global_upe <- registros_completos %>%
   summarise(
     categoria = "global",
     
-    total = sum(revision_upe != "", na.rm = TRUE),
+    total = sum(upe != "", na.rm = TRUE),
     
     aprobados = sum(
-      revision_upe == "aceptado",
+      upe == "aceptado",
       na.rm = TRUE
     ),
     
     rechazados = sum(
-      revision_upe == "rechazado",
+      upe == "rechazado",
       na.rm = TRUE
     ),
     
     por_revisar = sum(
-      revision_upe == "revision",
+      upe == "revision",
       na.rm = TRUE
     )
   )
@@ -878,7 +878,7 @@ tabla_unidades <- registros_completos %>%
 summarise(
   propuestas = n(),
   aprobados_uas = sum(revision_uas == "aprobado", na.rm = TRUE),
-  aprobados_upe = sum(revision_upe == "aceptado", na.rm = TRUE),
+  aprobados_upe = sum(upe == "aceptado", na.rm = TRUE),
   .groups = "drop"
 ) %>% 
 tidyr::pivot_wider(
