@@ -100,10 +100,11 @@ pct_incompletos <- nrow(registros_incompletos) / total_registros
 
 resumen_revision_uas <- registros_completos %>% 
   mutate(
-    revision_uas = stringr::str_to_lower(revision_uas),
-    revision_uas = stringr::str_squish(revision_uas),
-    por_revisar = sum(revision_uas == "" & cnpm != "",
-      na.rm = TRUE)
+    revision_uas = str_to_lower(str_squish(revision_uas)),
+    revision_uas = tidyr::replace_na(revision_uas, ""),
+    
+    cnpm = str_squish(cnpm),
+    cnpm = tidyr::replace_na(cnpm, "")
   ) %>% 
   summarise(
     aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
@@ -259,6 +260,9 @@ tabla_unidades <- tabla_unidades_base %>%
 #Reusment por clave de puesto
 resumen_por_categoria <- registros_completos %>% 
   mutate(
+    cnpm = str_squish(cnpm),
+    cnpm = tidyr::replace_na(cnpm, ""),
+    
     revision_uas = stringr::str_to_lower(revision_uas),
     revision_uas = stringr::str_squish(revision_uas),
     revision_uas = tidyr::replace_na(revision_uas, ""),
@@ -297,6 +301,9 @@ valor_resumen <- function(cat, variable) {
 
 resumen_por_categoria_upe <- registros_completos %>% 
   mutate(
+    cnpm = str_squish(cnpm),
+    cnpm = tidyr::replace_na(cnpm, ""),
+    
     revision_upe = str_to_lower(revision_upe),
     revision_upe = str_squish(revision_upe),
     revision_upe = tidyr::replace_na(revision_upe, ""),
