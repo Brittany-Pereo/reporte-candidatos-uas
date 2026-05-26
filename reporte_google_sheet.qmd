@@ -1058,107 +1058,28 @@ crear_tabla_dt(tabla_totales)
 ```
 ## Médicos generales
 ```{r}
-detalle_propuestas_med_gen <- registros_detalle %>% 
-  filter(categoria == "med_gen") %>% 
-  group_by(clues) %>% 
-  group_modify(~ tibble::tibble(
-    detalle_propuestas = crear_detalle_html(.x)
-  )) %>% 
-  ungroup()
-
-detalle_uas_med_gen <- registros_detalle %>% 
-  mutate(
-    revision_uas = str_to_lower(str_squish(revision_uas)),
-    revision_uas = tidyr::replace_na(revision_uas, "")
-  ) %>% 
-  filter(
-    categoria == "med_gen",
-    revision_uas == "aprobado"
-  ) %>% 
-  group_by(clues) %>% 
-  group_modify(~ tibble::tibble(
-    detalle_uas = crear_detalle_html(.x)
-  )) %>% 
-  ungroup()
-
-detalle_upe_med_gen <- datos_upe %>% 
-  filter(
-    categoria == "med_gen",
-    upe == "aceptado"
-  ) %>% 
-  group_by(clues) %>% 
-  group_modify(~ tibble::tibble(
-    detalle_upe = crear_detalle_html(.x)
-  )) %>% 
-  ungroup()
-
 tabla_med_gen <- tabla_unidades %>% 
-  mutate(
-    unidad_medica = str_to_title(unidad_medica)
-  ) %>% 
-  
-  left_join(
-    detalle_propuestas_med_gen,
-    by = "clues"
-  ) %>% 
-  
-  left_join(
-    detalle_uas_med_gen,
-    by = "clues"
-  ) %>% 
-  
-  left_join(
-    detalle_upe_med_gen,
-    by = "clues"
-  ) %>% 
-  
-  mutate(
-    detalle_propuestas = tidyr::replace_na(
-      detalle_propuestas,
-      "<em>Sin registros</em>"
-    ),
-    
-    detalle_uas = tidyr::replace_na(
-      detalle_uas,
-      "<em>Sin registros</em>"
-    ),
-    
-    detalle_upe = tidyr::replace_na(
-      detalle_upe,
-      "<em>Sin registros</em>"
-    )
-  ) %>% 
-  
-  transmute(
+  mutate(unidad_medica = str_to_title(unidad_medica)) %>% 
+  select(
     Estado = estado,
-    
     CLUES = clues,
-    
     `Unidad médica` = unidad_medica,
-    
-    `Médicos generales propuestos` =
-      mapply(
-        boton_modal,
-        propuestas_med_gen,
-        detalle_propuestas
-      ),
-    
-    `Médicos generales aprobados UAS` =
-      mapply(
-        boton_modal,
-        aprobados_uas_med_gen,
-        detalle_uas
-      ),
-    
-    `Médicos generales aprobados UPE` =
-      mapply(
-        boton_modal,
-        aprobados_upe_med_gen,
-        detalle_upe
-      )
+    `Médicos generales propuestos` = propuestas_med_gen,
+    `Médicos generales aprobados UAS` = aprobados_uas_med_gen,
+    `Médicos generales aprobados UPE` = aprobados_upe_med_gen
   )
 
-crear_tabla_dt(tabla_med_gen)
+DT::datatable(
+  tabla_med_gen,
+  filter = "top",
+  width = "100%",
+  options = list(
+    pageLength = 10,
+    autoWidth = TRUE,
+    scrollX = TRUE
+  ),
+  rownames = FALSE
+)
 ```
 
 ## Médicos especialistas
@@ -1267,7 +1188,6 @@ crear_tabla_dt(tabla_med_especi)
 ```
 
 ## Enfermería
-
 ```{r}
 detalle_propuestas_enf <- registros_detalle %>% 
   filter(categoria == "enf") %>% 
