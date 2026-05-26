@@ -61,8 +61,14 @@ datos_upe <- read_sheet(
   mutate(
     clues = str_to_upper(str_squish(clues)),
     upe = str_to_lower(str_squish(upe)),
+    upe = str_replace_all(upe, "ó", "o"),
     upe = tidyr::replace_na(upe, "")
-  )
+  ) %>% 
+  filter(
+    clues != "",
+    upe %in% c("revision", "aceptado", "rechazado")
+  ) %>% 
+  distinct(clues, upe)
 
 registros_completos <- registros_completos %>% 
   mutate(
