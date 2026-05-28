@@ -1,0 +1,554 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+%
+\documentclass[
+]{article}
+
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else  
+    % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=2cm]{geometry}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\setcounter{secnumdepth}{5}
+% Make \paragraph and \subparagraph free-standing
+\makeatletter
+\ifx\paragraph\undefined\else
+  \let\oldparagraph\paragraph
+  \renewcommand{\paragraph}{
+    \@ifstar
+      \xxxParagraphStar
+      \xxxParagraphNoStar
+  }
+  \newcommand{\xxxParagraphStar}[1]{\oldparagraph*{#1}\mbox{}}
+  \newcommand{\xxxParagraphNoStar}[1]{\oldparagraph{#1}\mbox{}}
+\fi
+\ifx\subparagraph\undefined\else
+  \let\oldsubparagraph\subparagraph
+  \renewcommand{\subparagraph}{
+    \@ifstar
+      \xxxSubParagraphStar
+      \xxxSubParagraphNoStar
+  }
+  \newcommand{\xxxSubParagraphStar}[1]{\oldsubparagraph*{#1}\mbox{}}
+  \newcommand{\xxxSubParagraphNoStar}[1]{\oldsubparagraph{#1}\mbox{}}
+\fi
+\makeatother
+
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{241,243,245}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.40,0.45,0.13}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\ExtensionTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.28,0.35,0.67}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.46,0.62}{#1}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.07,0.07,0.07}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\AtBeginDocument{%
+\ifdefined\contentsname
+  \renewcommand*\contentsname{Tabla de contenidos}
+\else
+  \newcommand\contentsname{Tabla de contenidos}
+\fi
+\ifdefined\listfigurename
+  \renewcommand*\listfigurename{Listado de Figuras}
+\else
+  \newcommand\listfigurename{Listado de Figuras}
+\fi
+\ifdefined\listtablename
+  \renewcommand*\listtablename{Listado de Tablas}
+\else
+  \newcommand\listtablename{Listado de Tablas}
+\fi
+\ifdefined\figurename
+  \renewcommand*\figurename{Figura}
+\else
+  \newcommand\figurename{Figura}
+\fi
+\ifdefined\tablename
+  \renewcommand*\tablename{Tabla}
+\else
+  \newcommand\tablename{Tabla}
+\fi
+}
+\@ifpackageloaded{float}{}{\usepackage{float}}
+\floatstyle{ruled}
+\@ifundefined{c@chapter}{\newfloat{codelisting}{h}{lop}}{\newfloat{codelisting}{h}{lop}[chapter]}
+\floatname{codelisting}{Listado}
+\newcommand*\listoflistings{\listof{codelisting}{Listado de Listados}}
+\makeatother
+\makeatletter
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
+\makeatother
+
+\ifLuaTeX
+\usepackage[bidi=basic]{babel}
+\else
+\usepackage[bidi=default]{babel}
+\fi
+\babelprovide[main,import]{spanish}
+% get rid of language-specific shorthands (see #6817):
+\let\LanguageShortHands\languageshorthands
+\def\languageshorthands#1{}
+\usepackage{bookmark}
+
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same} % disable monospaced font for URLs
+\hypersetup{
+  pdftitle={Reporte de seguimiento},
+  pdfauthor={Brittany Cecilia Pereo Sánchez},
+  pdflang={es},
+  colorlinks=true,
+  linkcolor={blue},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={Blue},
+  pdfcreator={LaTeX via pandoc}}
+
+
+\title{Reporte de seguimiento}
+\author{Brittany Cecilia Pereo Sánchez}
+\date{}
+
+\begin{document}
+\maketitle
+
+\renewcommand*\contentsname{Tabla de contenidos}
+{
+\hypersetup{linkcolor=}
+\setcounter{tocdepth}{3}
+\tableofcontents
+}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(googlesheets4)}
+\FunctionTok{library}\NormalTok{(gargle)}
+\FunctionTok{library}\NormalTok{(dplyr)}
+\FunctionTok{library}\NormalTok{(janitor)}
+\FunctionTok{library}\NormalTok{(knitr)}
+\FunctionTok{library}\NormalTok{(lubridate)}
+
+\NormalTok{url\_sheet }\OtherTok{\textless{}{-}} \StringTok{"https://docs.google.com/spreadsheets/d/1Axj6z0U1odyFcdDz7Rjdv2jOZgnh9yIxKAXiWzvXKW4/edit?gid=0\#gid=0"}
+
+\FunctionTok{gs4\_auth}\NormalTok{(}
+  \AttributeTok{email =} \StringTok{"lia.pereo@ciencias.unam.mx"}\NormalTok{,}
+  \AttributeTok{scopes =} \StringTok{"https://www.googleapis.com/auth/spreadsheets.readonly"}
+\NormalTok{)}
+
+\NormalTok{nombres\_hojas }\OtherTok{\textless{}{-}} \FunctionTok{sheet\_names}\NormalTok{(url\_sheet)}
+
+\NormalTok{lista\_hojas }\OtherTok{\textless{}{-}} \FunctionTok{lapply}\NormalTok{(nombres\_hojas, }\ControlFlowTok{function}\NormalTok{(hoja) \{}
+  \FunctionTok{read\_sheet}\NormalTok{(}\AttributeTok{ss =}\NormalTok{ url\_sheet, }\AttributeTok{sheet =}\NormalTok{ hoja) }\SpecialCharTok{\%\textgreater{}\%} 
+    \FunctionTok{clean\_names}\NormalTok{()}
+\NormalTok{\})}
+
+\FunctionTok{names}\NormalTok{(lista\_hojas) }\OtherTok{\textless{}{-}}\NormalTok{ janitor}\SpecialCharTok{::}\FunctionTok{make\_clean\_names}\NormalTok{(nombres\_hojas)}
+
+\NormalTok{df\_hoja\_1 }\OtherTok{\textless{}{-}}\NormalTok{ lista\_hojas[[}\DecValTok{1}\NormalTok{]]}
+\NormalTok{df\_hoja\_2 }\OtherTok{\textless{}{-}}\NormalTok{ lista\_hojas[[}\DecValTok{2}\NormalTok{]]}
+\end{Highlighting}
+\end{Shaded}
+
+\section{Fecha de actualización}\label{fecha-de-actualizaciuxf3n}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fecha\_actualizacion }\OtherTok{\textless{}{-}} \FunctionTok{format}\NormalTok{(}\FunctionTok{Sys.time}\NormalTok{(), }\StringTok{"\%d/\%m/\%Y \%H:\%M"}\NormalTok{)}
+\FunctionTok{cat}\NormalTok{(}\StringTok{"Reporte actualizado el:"}\NormalTok{, fecha\_actualizacion)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+Reporte actualizado el: 13/05/2026 12:03
+\end{verbatim}
+
+\section{Hojas incluidas}\label{hojas-incluidas}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{kable}\NormalTok{(}
+  \FunctionTok{data.frame}\NormalTok{(}
+    \AttributeTok{numero =} \FunctionTok{seq\_along}\NormalTok{(nombres\_hojas),}
+    \AttributeTok{hoja =}\NormalTok{ nombres\_hojas}
+\NormalTok{  ),}
+  \AttributeTok{caption =} \StringTok{"Hojas leídas desde Google Sheets"}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[]{@{}rl@{}}
+\caption{Hojas leídas desde Google Sheets}\tabularnewline
+\toprule\noalign{}
+numero & hoja \\
+\midrule\noalign{}
+\endfirsthead
+\toprule\noalign{}
+numero & hoja \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+1 & Registros\_completos \\
+2 & Registros\_incompletos \\
+\end{longtable}
+
+\section{Resumen general}\label{resumen-general}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{resumen\_general }\OtherTok{\textless{}{-}} \FunctionTok{data.frame}\NormalTok{(}
+  \AttributeTok{hoja =}\NormalTok{ nombres\_hojas[}\DecValTok{1}\SpecialCharTok{:}\DecValTok{2}\NormalTok{],}
+  \AttributeTok{filas =} \FunctionTok{c}\NormalTok{(}\FunctionTok{nrow}\NormalTok{(df\_hoja\_1), }\FunctionTok{nrow}\NormalTok{(df\_hoja\_2)),}
+  \AttributeTok{columnas =} \FunctionTok{c}\NormalTok{(}\FunctionTok{ncol}\NormalTok{(df\_hoja\_1), }\FunctionTok{ncol}\NormalTok{(df\_hoja\_2))}
+\NormalTok{)}
+
+\FunctionTok{kable}\NormalTok{(}
+\NormalTok{  resumen\_general,}
+  \AttributeTok{caption =} \StringTok{"Resumen de dimensiones por hoja"}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[]{@{}lrr@{}}
+\caption{Resumen de dimensiones por hoja}\tabularnewline
+\toprule\noalign{}
+hoja & filas & columnas \\
+\midrule\noalign{}
+\endfirsthead
+\toprule\noalign{}
+hoja & filas & columnas \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Registros\_completos & 9 & 14 \\
+Registros\_incompletos & 29 & 5 \\
+\end{longtable}
+
+\section{Vista previa de la primera
+hoja}\label{vista-previa-de-la-primera-hoja}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{kable}\NormalTok{(}
+  \FunctionTok{head}\NormalTok{(df\_hoja\_1, }\DecValTok{15}\NormalTok{),}
+  \AttributeTok{caption =} \FunctionTok{paste}\NormalTok{(}\StringTok{"Primeras filas de:"}\NormalTok{, nombres\_hojas[}\DecValTok{1}\NormalTok{])}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 26\tabcolsep) * \real{0.1220}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 26\tabcolsep) * \real{0.0285}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 26\tabcolsep) * \real{0.0488}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 26\tabcolsep) * \real{0.0772}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 26\tabcolsep) * \real{0.1220}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 26\tabcolsep) * \real{0.0447}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 26\tabcolsep) * \real{0.1667}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 26\tabcolsep) * \real{0.0407}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 26\tabcolsep) * \real{0.0528}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 26\tabcolsep) * \real{0.1341}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 26\tabcolsep) * \real{0.0285}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 26\tabcolsep) * \real{0.0569}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 26\tabcolsep) * \real{0.0366}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 26\tabcolsep) * \real{0.0407}}@{}}
+\caption{Primeras filas de: Registros\_completos}\tabularnewline
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+fecha
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+estado
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+clues
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+curp
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+clave\_puesto
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+turno
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+especialidad\_cedula
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+concuerda
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+revision\_uas
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+link\_carpeta
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+oficio
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+observaciones
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+status
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+faltantes
+\end{minipage} \\
+\midrule\noalign{}
+\endfirsthead
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+fecha
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+estado
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+clues
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+curp
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+clave\_puesto
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+turno
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+especialidad\_cedula
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+concuerda
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+revision\_uas
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+link\_carpeta
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+oficio
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+observaciones
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+status
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+faltantes
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+2026-05-13T06:29:17.771-06:00 & Sonora & SRIMB000016 &
+GAME020705MSRXCSA0 & ENFERMERA DE ATENCION CLINICA & Matutino &
+LICENCIATURA EN ENFERMERÍA & Si & NA & ESLI MADAI GAXIOLA MACHUCA & NA &
+NA & COMPLETO & NA \\
+2026-05-13T06:29:17.773-06:00 & Sonora & SRIMB000016 &
+AARD010730MSRYSNA0 & ENFERMERA DE ATENCION CLINICA & Nocturno B &
+LICENCIATURA EN ENFERMERÍA & Si & NA & DANIA ALEJANDRA AYALA RIOS & NA &
+NA & COMPLETO & NA \\
+2026-05-13T06:29:17.774-06:00 & Sonora & SRIMB000016 &
+EIFA991030MSRNLN02 & ENFERMERA DE ATENCION CLINICA & Matutino &
+LICENCIATURA EN ENFERMERÍA & Si & NA & ANA BELEM ENRIQUEZ FLORES & NA &
+NA & COMPLETO & NA \\
+2026-05-13T06:29:17.775-06:00 & Sonora & SRIMB000016 &
+CAAV950605MSRTRL00 & ENFERMERA DE ATENCION CLINICA & Nocturno B &
+LICENCIATURA EN ENFERMERÍA & Si & NA & VALERIA BERENICE CAUTICIO ARZOLA
+& NA & NA & COMPLETO & NA \\
+2026-05-13T06:29:17.775-06:00 & Sonora & SRIMB000016 &
+CASM920218MSRMCR05 & ENFERMERA DE ATENCION CLINICA & Nocturno B &
+PROFNAL. TEC. BACH EN ENFERMERÍA GENERAL & No & NA & MARTHA ISABEL
+CAMPILLO SAUCEDA & NA & NA & COMPLETO & NA \\
+2026-05-13T06:29:17.776-06:00 & Sonora & SRIMB000016 &
+CAAA990815HSLMCB02 & ENFERMERA DE ATENCION CLINICA & Vespertino &
+LICENCIATURA EN ENFERMERÍA & Si & NA & ABRAHAM CAMACHO ACOSTA & NA & NA
+& COMPLETO & NA \\
+2026-05-13T06:29:17.777-06:00 & Sonora & SRIMB000016 &
+AOIC991110MSRPBR06 & ENFERMERA DE ATENCION CLINICA & Matutino &
+LICENCIATURA EN ENFERMERÍA & Si & NA & CAROLINA NOHEMI APODACA IBARRA &
+NA & NA & COMPLETO & NA \\
+2026-05-13T06:29:17.778-06:00 & Sonora & SRIMB000016 &
+AUNE020912MSRNBMA0 & ENFERMERA DE ATENCION CLINICA & Vespertino &
+LICENCIATURA EN ENFERMERÍA & Si & NA & EMMA DANIELA ANGUAMEA NIEBLAS &
+NA & NA & COMPLETO & NA \\
+2026-05-13T06:29:17.778-06:00 & Sonora & SRIMB000016 &
+AAOR970629MSRLSX06 & ENFERMERA DE ATENCION CLINICA & Vespertino &
+LICENCIATURA EN ENFERMERÍA & Si & NA & ROXANA YULIZA ALAMILLA OSORNIO &
+NA & NA & COMPLETO & NA \\
+\end{longtable}
+
+\section{Vista previa de la segunda
+hoja}\label{vista-previa-de-la-segunda-hoja}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{kable}\NormalTok{(}
+  \FunctionTok{head}\NormalTok{(df\_hoja\_2, }\DecValTok{15}\NormalTok{),}
+  \AttributeTok{caption =} \FunctionTok{paste}\NormalTok{(}\StringTok{"Primeras filas de:"}\NormalTok{, nombres\_hojas[}\DecValTok{2}\NormalTok{])}
+\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2055}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.0479}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.0753}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1712}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.5000}}@{}}
+\caption{Primeras filas de: Registros\_incompletos}\tabularnewline
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+fecha
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+estado
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+status
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+faltantes
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+link\_carpeta
+\end{minipage} \\
+\midrule\noalign{}
+\endfirsthead
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+fecha
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+estado
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+status
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+faltantes
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+link\_carpeta
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+2026-05-13T07:02:18.379-06:00 & Sonora & INCOMPLETO & 02\_Cedula\_fiscal
+&
+https://drive.google.com/drive/folders/1s\_DH\_qHhHga8Oi0wt6mRT8Zic3GLz5y6 \\
+2026-05-13T07:02:18.381-06:00 & Sonora & INCOMPLETO & 02\_Cedula\_fiscal
+&
+https://drive.google.com/drive/folders/1JriEx3mU61BeNp7Pii0L8eNnyR2Kf4RD \\
+2026-05-13T07:02:18.382-06:00 & Sonora & INCOMPLETO & 02\_Cedula\_fiscal
+&
+https://drive.google.com/drive/folders/1RrqP8JoRwszxa6AyQ9kJhKRHyNO3goQ4 \\
+2026-05-13T07:02:18.383-06:00 & Sonora & INCOMPLETO & 02\_Cedula\_fiscal
+&
+https://drive.google.com/drive/folders/1sHeiV9jkHmEow87cuiXp94AhK7890mgB \\
+2026-05-13T07:02:18.384-06:00 & Sonora & INCOMPLETO & 02\_Cedula\_fiscal
+&
+https://drive.google.com/drive/folders/139Ucc3m7\_IoXGryxy9D8UgXVJTvC9fp7 \\
+2026-05-13T07:02:18.385-06:00 & Sonora & INCOMPLETO & 02\_Cedula\_fiscal
+&
+https://drive.google.com/drive/folders/1GnyA246Zimj9teqMJwKhvwOVfGGEdsdh \\
+2026-05-13T07:02:18.386-06:00 & Sonora & INCOMPLETO & 02\_Cedula\_fiscal
+&
+https://drive.google.com/drive/folders/1prKs9\_M6xcIbzpBvrzLpS\_zxGjRKolRA \\
+2026-05-13T07:02:18.386-06:00 & Sonora & INCOMPLETO &
+02\_Cedula\_fiscal, 03\_INE &
+https://drive.google.com/drive/folders/1XTOwfgPbP-w-t6BOSVieeyyPVXC4iOjV \\
+2026-05-13T07:02:18.387-06:00 & Sonora & INCOMPLETO & 02\_Cedula\_fiscal
+&
+https://drive.google.com/drive/folders/1zY19-STYmSASNFHUMCyv34O4lm8nawl7 \\
+2026-05-13T07:02:18.388-06:00 & Sonora & INCOMPLETO & 02\_Cedula\_fiscal
+&
+https://drive.google.com/drive/folders/13ZjOUqIQQKEYPguBP3VYzKYjrkZQp7Us \\
+2026-05-13T07:02:18.388-06:00 & Sonora & INCOMPLETO & 02\_Cedula\_fiscal
+&
+https://drive.google.com/drive/folders/1R2mvYZIYsfJCuXd2UjpNhK4zKCez0E\_D \\
+2026-05-13T07:02:18.389-06:00 & Sonora & INCOMPLETO & 02\_Cedula\_fiscal
+&
+https://drive.google.com/drive/folders/1rMfoiL8hjz4r4anmZvoqRNot3dc61f3v \\
+2026-05-13T07:02:18.390-06:00 & Sonora & INCOMPLETO & 02\_Cedula\_fiscal
+&
+https://drive.google.com/drive/folders/12v0Wl9DZ\_h17tcIWMSa4njcvUhNDKuuW \\
+2026-05-13T07:02:18.390-06:00 & Sonora & INCOMPLETO & 02\_Cedula\_fiscal
+&
+https://drive.google.com/drive/folders/10z7bTEQFEGZBP-ckWDzXdaW5N5S1RE6i \\
+2026-05-13T07:02:18.391-06:00 & Sonora & INCOMPLETO & 02\_Cedula\_fiscal
+&
+https://drive.google.com/drive/folders/1LB7hFXJupXznjKImsxgyg0kAqnKxNMqW \\
+\end{longtable}
+
+
+
+
+\end{document}
