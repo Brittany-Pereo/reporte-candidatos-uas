@@ -71,7 +71,7 @@ datos_upe <- read_sheet(
   sheet = "Hoja 1"
 ) %>% 
   clean_names() %>% 
-  select(clues, clave_puesto, cnpm, upe) %>% 
+  select(clues, clave_puesto, cnpm, upe, fase) %>% 
   mutate(
     clues = str_to_upper(str_squish(clues)),
     cnpm = str_squish(cnpm),
@@ -91,6 +91,16 @@ datos_upe <- read_sheet(
     cnpm != "",
     categoria != "otro"
   )
+
+registros_completos_f1 <- registros_completos %>%
+  filter(fase == 1)
+
+datos_upe_f1 <- datos_upe %>%
+  filter(fase == 1)
+
+n_completos_f1 <- nrow(registros_completos_f1)
+
+n_upe_f1 <- nrow(datos_upe_f1)
 
 resumen_distribucion <- registros_completos %>% 
   count(categoria, name = "total")
@@ -124,6 +134,19 @@ fecha_actualizacion <- format(Sys.time(), "%d/%m/%Y %H:%M")
 
 pct_completos <- nrow(registros_completos) / total_registros
 pct_incompletos <- nrow(registros_incompletos) / total_registros
+
+resumen_distribucion_f1 <- registros_completos %>%
+  filter(fase == 1) %>%
+  count(categoria, name = "total")
+
+valor_distribucion_f1 <- function(cat){
+
+  valor <- resumen_distribucion_f1 %>%
+    filter(categoria == cat) %>%
+    pull(total)
+
+  if(length(valor) == 0) 0 else valor
+}
 
 resumen_revision_uas <- registros_completos %>% 
   mutate(
@@ -252,6 +275,15 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 </div>
 
 <summary><b>Distribución de los registros completos</b></summary>
+
+## Prueba Fase 1
+
+Médicos generales: `r comma(valor_distribucion_f1("med_gen"))`
+
+Médicos especialistas: `r comma(valor_distribucion_f1("med_especi"))`
+
+Enfermería: `r comma(valor_distribucion_f1("enf"))`
+
 <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:18px; margin-top:18px; margin-bottom:18px;">
 <div style="background:#f8fafc; border:1px solid #e5e7eb; padding:20px 24px; border-radius:18px;">
   <p style="margin:0; color:#6b7280; font-size:18px; font-weight:600;">
@@ -292,7 +324,6 @@ Reporte actualizado el: <b>`r fecha_actualizacion`</b>
 </div>
 <details open>
 <summary><b>Detalle de registros completos</b></summary>
-
 
 ## Resumen por estatus UAS
 
