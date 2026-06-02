@@ -1323,5 +1323,5 @@ tabla_enf <- tabla_unidades %>%
 crear_tabla_dt(tabla_enf)
 ```
 
-
+:::
 
