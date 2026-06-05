@@ -72,7 +72,7 @@ datos_upe <- read_sheet(
   ss = url_sheet_upe,
   sheet = "Hoja 1"
 ) %>% 
-  clean_names() %>% 
+  janitor::clean_names() %>% 
   select(clues, clave_puesto, cnpm, upe, link_carpeta, prioridad_ai)%>% 
   mutate(
     clues = str_to_upper(str_squish(clues)),
@@ -97,20 +97,6 @@ datos_upe <- read_sheet(
 
 excel_aceptados_upe <- datos_upe %>% 
   filter(upe == "aceptado") %>% 
-  left_join(
-    registros_completos %>% 
-      mutate(
-        clave_puesto = str_to_upper(str_squish(clave_puesto))
-      ) %>% 
-      select(
-        clues,
-        cnpm,
-        clave_puesto,
-        link_carpeta,
-        prioridad_ai
-      ),
-    by = c("clues", "cnpm", "clave_puesto")
-  ) %>% 
   transmute(
     CLUES = clues,
     Candidato = link_carpeta,
