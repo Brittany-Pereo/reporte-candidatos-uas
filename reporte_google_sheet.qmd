@@ -73,8 +73,7 @@ datos_upe <- read_sheet(
   sheet = "Hoja 1"
 ) %>% 
   clean_names() %>% 
-  select(clues, clave_puesto, cnpm, upe, link_carpeta,
-         prioridad_si) %>% 
+  select(clues, clave_puesto, cnpm, upe, link_carpeta, prioridad_ai)%>% 
   mutate(
     clues = str_to_upper(str_squish(clues)),
     clave_puesto = str_to_upper(str_squish(clave_puesto)),
