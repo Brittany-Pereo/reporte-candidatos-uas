@@ -73,7 +73,8 @@ datos_upe <- read_sheet(
   sheet = "Hoja 1"
 ) %>% 
   clean_names() %>% 
-  select(clues, clave_puesto, cnpm, upe) %>% 
+  select(clues, clave_puesto, cnpm, upe, link_carpeta,
+         prioridad_si) %>% 
   mutate(
     clues = str_to_upper(str_squish(clues)),
     clave_puesto = str_to_upper(str_squish(clave_puesto)),
@@ -106,16 +107,16 @@ excel_aceptados_upe <- datos_upe %>%
         clues,
         cnpm,
         clave_puesto,
-        candidato,
-        fase
+        link_carpeta,
+        prioridad_ai
       ),
     by = c("clues", "cnpm", "clave_puesto")
   ) %>% 
   transmute(
     CLUES = clues,
-    Candidato = candidato,
+    Candidato = link_carpeta,
     Puesto = clave_puesto,
-    Fase = fase
+    Fase = prioridad_ai
   ) %>% 
   arrange(CLUES, Puesto, Candidato)
 
