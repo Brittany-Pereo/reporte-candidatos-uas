@@ -1,0 +1,112 @@
+INICIO BAT 05/06/2026 13:58:39.59 
+error: cannot pull with rebase: You have unstaged changes.
+error: Please commit or stash them.
+[1] 128
+
+
+processing file: reporte_google_sheet.qmd
+1/13                  
+2/13 [setup]          
+Error in `select()`:
+! Can't select columns that don't exist.
+✖ Column `candidato` doesn't exist.
+Backtrace:
+     ▆
+  1. ├─... %>% arrange(CLUES, Puesto, Candidato)
+  2. ├─dplyr::arrange(., CLUES, Puesto, Candidato)
+  3. ├─dplyr::transmute(...)
+  4. ├─dplyr::left_join(...)
+  5. ├─dplyr:::left_join.data.frame(...)
+  6. │ └─dplyr::auto_copy(x, y, copy = copy)
+  7. │   ├─dplyr::same_src(x, y)
+  8. │   └─dplyr:::same_src.data.frame(x, y)
+  9. │     └─base::is.data.frame(y)
+ 10. ├─registros_completos %>% ...
+ 11. ├─dplyr::select(., clues, cnpm, clave_puesto, candidato, fase)
+ 12. ├─dplyr:::select.data.frame(., clues, cnpm, clave_puesto, candidato, fase)
+ 13. │ └─tidyselect::eval_select(expr(c(...)), data = .data, error_call = error_call)
+ 14. │   └─tidyselect:::eval_select_impl(...)
+ 15. │     ├─tidyselect:::with_subscript_errors(...)
+ 16. │     │ └─base::withCallingHandlers(...)
+ 17. │     └─tidyselect:::vars_select_eval(...)
+ 18. │       └─tidyselect:::walk_data_tree(expr, data_mask, context_mask)
+ 19. │         └─tidyselect:::eval_c(expr, data_mask, context_mask)
+ 20. │           └─tidyselect:::reduce_sels(node, data_mask, context_mask, init = init)
+ 21. │             └─tidyselect:::walk_data_tree(new, data_mask, context_mask)
+ 22. │               └─tidyselect:::as_indices_sel_impl(...)
+ 23. │                 └─tidyselect:::as_indices_impl(...)
+ 24. │                   └─tidyselect:::chr_as_locations(x, vars, call = call, arg = arg)
+ 25. │                     └─vctrs::vec_as_location(...)
+ 26. └─vctrs (local) `<fn>`()
+ 27.   └─vctrs:::stop_subscript_oob(...)
+ 28.     └─vctrs:::stop_subscript(...)
+ 29.       └─rlang::abort(...)
+
+Quitting from reporte_google_sheet.qmd:20-245 [setup]
+Ejecución interrumpida
+Error in `quarto::quarto_render()`:
+! Error running quarto CLI from R.
+Caused by error in `quarto::quarto_render()`:
+✖ Error returned by quarto CLI.
+  -----------------------------
+  
+  
+  processing file: reporte_google_sheet.qmd
+  1/13
+  2/13 [setup]
+  Error in `select()`:
+  ! Can't select columns that don't exist.
+  ✖ Column `candidato` doesn't exist.
+  Backtrace:
+  ▆
+  1. ├─... %>% arrange(CLUES, Puesto, Candidato)
+  2. ├─dplyr::arrange(., CLUES, Puesto, Candidato)
+  3. ├─dplyr::transmute(...)
+  4. ├─dplyr::left_join(...)
+  5. ├─dplyr:::left_join.data.frame(...)
+  6. │ └─dplyr::auto_copy(x, y, copy = copy)
+  7. │ ├─dplyr::same_src(x, y)
+  8. │ └─dplyr:::same_src.data.frame(x, y)
+  9. │ └─base::is.data.frame(y)
+  10. ├─registros_completos %>% ...
+  11. ├─dplyr::select(., clues, cnpm, clave_puesto, candidato, fase)
+  12. ├─dplyr:::select.data.frame(., clues, cnpm, clave_puesto, candidato,
+  fase)
+  13. │ └─tidyselect::eval_select(expr(c(...)), data = .data, error_call =
+  error_call)
+  14. │ └─tidyselect:::eval_select_impl(...)
+  15. │ ├─tidyselect:::with_subscript_errors(...)
+  16. │ │ └─base::withCallingHandlers(...)
+  17. │ └─tidyselect:::vars_select_eval(...)
+  18. │ └─tidyselect:::walk_data_tree(expr, data_mask, context_mask)
+  19. │ └─tidyselect:::eval_c(expr, data_mask, context_mask)
+  20. │ └─tidyselect:::reduce_sels(node, data_mask, context_mask, init = init)
+  21. │ └─tidyselect:::walk_data_tree(new, data_mask, context_mask)
+  22. │ └─tidyselect:::as_indices_sel_impl(...)
+  23. │ └─tidyselect:::as_indices_impl(...)
+  24. │ └─tidyselect:::chr_as_locations(x, vars, call = call, arg = arg)
+  25. │ └─vctrs::vec_as_location(...)
+  26. └─vctrs (local) `<fn>`()
+  27.  └─vctrs:::stop_subscript_oob(...)
+  28.  └─vctrs:::stop_subscript(...)
+  29.  └─rlang::abort(...)
+  
+  Quitting from reporte_google_sheet.qmd:20-245 [setup]
+  Ejecución interrumpida
+  
+Caused by error:
+! System command 'quarto.exe' failed
+Backtrace:
+     ▆
+  1. ├─quarto::quarto_render("reporte_google_sheet.qmd")
+  2. │ └─quarto:::quarto_run(args, echo = TRUE, quarto_bin = quarto_bin)
+  3. │   ├─base::withCallingHandlers(...)
+  4. │   └─processx::run(...)
+  5. │     └─throw(...)
+  6. │       └─base::signalCondition(cond)
+  7. └─quarto (local) `<fn>`(`<systm___>`)
+  8.   └─quarto:::wrap_quarto_error(e, args, .call = .call)
+  9.     └─cli::cli_abort(msg, call = .call, parent = cnd, )
+ 10.       └─rlang::abort(...)
+Ejecución interrumpida
+FIN BAT 05/06/2026 13:59:09.45 
