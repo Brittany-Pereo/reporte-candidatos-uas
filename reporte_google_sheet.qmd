@@ -48,7 +48,7 @@ lista_hojas <- lapply(nombres_hojas, function(hoja) {
 
 names(lista_hojas) <- janitor::make_clean_names(nombres_hojas)
 
-registros_completos <- lista_hojas[["Registros_completos"]] %>% 
+registros_completos <- lista_hojas[["registros_completos"]] %>% 
   mutate(
     clues = str_to_upper(str_squish(clues)),
     cnpm = str_squish(cnpm),
@@ -62,9 +62,16 @@ registros_completos <- lista_hojas[["Registros_completos"]] %>%
   ) %>% 
   filter(cnpm != "")
 
-registros_incompletos <- lista_hojas[["Registros_incompletos"]] %>% 
-  clean_names() %>% 
+registros_incompletos <- lista_hojas[["registros_incompletos"]] %>% 
+  clean_names()
+
+if (!"faltantes" %in% names(registros_incompletos)) {
+  registros_incompletos$faltantes <- NA_character_
+}
+
+registros_incompletos <- registros_incompletos %>% 
   filter(!is.na(faltantes))
+
 
 url_sheet_upe <- "https://docs.google.com/spreadsheets/d/1iSEdYOU1uDF7Gwnu0o9ABR9hv3pI1INnrJv2Yt9jbN0/edit?gid=0#gid=0"
 
@@ -95,20 +102,6 @@ datos_upe <- read_sheet(
     categoria != "otro"
   )
 
-# excel_aceptados_upe <- datos_upe %>% 
-#   filter(upe == "aceptado") %>% 
-#   transmute(
-#     CLUES = clues,
-#     Candidato = link_carpeta,
-#     Puesto = clave_puesto,
-#     Fase = prioridad_ai
-#   ) %>% 
-#   arrange(CLUES, Puesto, Candidato)
-# 
-# writexl::write_xlsx(
-#   excel_aceptados_upe,
-#   "C:/Users/brittany.pereo/Downloads/aceptados_upe.xlsx"
-# )
 
 resumen_distribucion <- registros_completos %>% 
   count(categoria, name = "total")
