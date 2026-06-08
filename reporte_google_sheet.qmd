@@ -48,7 +48,7 @@ lista_hojas <- lapply(nombres_hojas, function(hoja) {
 
 names(lista_hojas) <- janitor::make_clean_names(nombres_hojas)
 
-registros_completos <- lista_hojas[[1]] %>% 
+registros_completos <- lista_hojas[["Registros_completos"]] %>% 
   mutate(
     clues = str_to_upper(str_squish(clues)),
     cnpm = str_squish(cnpm),
@@ -62,7 +62,7 @@ registros_completos <- lista_hojas[[1]] %>%
   ) %>% 
   filter(cnpm != "")
 
-registros_incompletos <- lista_hojas[[2]] %>% 
+registros_incompletos <- lista_hojas[["Registros_incompletos"]] %>% 
   clean_names() %>% 
   filter(!is.na(faltantes))
 
@@ -95,20 +95,20 @@ datos_upe <- read_sheet(
     categoria != "otro"
   )
 
-excel_aceptados_upe <- datos_upe %>% 
-  filter(upe == "aceptado") %>% 
-  transmute(
-    CLUES = clues,
-    Candidato = link_carpeta,
-    Puesto = clave_puesto,
-    Fase = prioridad_ai
-  ) %>% 
-  arrange(CLUES, Puesto, Candidato)
-
-writexl::write_xlsx(
-  excel_aceptados_upe,
-  "C:/Users/brittany.pereo/Downloads/aceptados_upe.xlsx"
-)
+# excel_aceptados_upe <- datos_upe %>% 
+#   filter(upe == "aceptado") %>% 
+#   transmute(
+#     CLUES = clues,
+#     Candidato = link_carpeta,
+#     Puesto = clave_puesto,
+#     Fase = prioridad_ai
+#   ) %>% 
+#   arrange(CLUES, Puesto, Candidato)
+# 
+# writexl::write_xlsx(
+#   excel_aceptados_upe,
+#   "C:/Users/brittany.pereo/Downloads/aceptados_upe.xlsx"
+# )
 
 resumen_distribucion <- registros_completos %>% 
   count(categoria, name = "total")
