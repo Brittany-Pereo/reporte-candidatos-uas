@@ -1,0 +1,1369 @@
+---
+title: "Reporte de registro de candidatos UAS"
+#author: "Brittany Cecilia Pereo Sánchez"
+
+format:
+  html:
+    toc: false
+    theme: cosmo
+    output-file: index.html
+    embed-resources: true
+
+execute:
+  echo: false
+  warning: false
+  message: false
+
+lang: es
+---
+
+```{r setup}
+#| message: false
+#| warning: false
+
+library(googlesheets4)
+library(dplyr)
+library(janitor)
+library(ggplot2)
+library(scales)
+library(knitr)
+library(stringr)
+library(DT)
+library(ggtext)
+library(writexl)
+library(tidyr)
+
+url_sheet <- "https://docs.google.com/spreadsheets/d/1Axj6z0U1odyFcdDz7Rjdv2jOZgnh9yIxKAXiWzvXKW4/edit?gid=0#gid=0"
+
+gs4_auth(
+  email = "lia.pereo@ciencias.unam.mx",
+  scopes = "https://www.googleapis.com/auth/spreadsheets.readonly"
+)
+
+nombres_hojas <- sheet_names(url_sheet)
+
+lista_hojas <- lapply(nombres_hojas, function(hoja) {
+  read_sheet(ss = url_sheet, sheet = hoja) %>% 
+    clean_names()
+})
+
+names(lista_hojas) <- janitor::make_clean_names(nombres_hojas)
+
+registros_completos <- lista_hojas[[1]] %>% 
+  mutate(
+    clues = str_to_upper(str_squish(clues)),
+    cnpm = str_squish(cnpm),
+    cnpm = tidyr::replace_na(cnpm, ""),
+    categoria = case_when(
+      str_detect(cnpm, "^ME") ~ "med_especi",
+      str_detect(cnpm, "^MG") ~ "med_gen",
+      str_detect(cnpm, "^EN") ~ "enf",
+      TRUE ~ "otro"
+    )
+  ) %>% 
+  filter(cnpm != "")
+
+registros_incompletos <- lista_hojas[[2]] %>% 
+  clean_names() %>% 
+  filter(!is.na(faltantes))
+
+url_sheet_upe <- "https://docs.google.com/spreadsheets/d/1iSEdYOU1uDF7Gwnu0o9ABR9hv3pI1INnrJv2Yt9jbN0/edit?gid=0#gid=0"
+
+datos_upe <- read_sheet(
+  ss = url_sheet_upe,
+  sheet = "Hoja 1"
+) %>% 
+  janitor::clean_names() %>% 
+  select(clues, clave_puesto, cnpm, upe, link_carpeta, prioridad_ai)%>% 
+  mutate(
+    clues = str_to_upper(str_squish(clues)),
+    clave_puesto = str_to_upper(str_squish(clave_puesto)),
+    cnpm = str_squish(cnpm),
+    cnpm = tidyr::replace_na(cnpm, ""),
+    upe = str_to_lower(str_squish(upe)),
+    upe = str_replace_all(upe, "ó", "o"),
+    upe = tidyr::replace_na(upe, ""),
+    categoria = case_when(
+      str_detect(cnpm, "^ME") ~ "med_especi",
+      str_detect(cnpm, "^MG") ~ "med_gen",
+      str_detect(cnpm, "^EN") ~ "enf",
+      TRUE ~ "otro"
+    )
+  ) %>% 
+  filter(
+    clues != "",
+    cnpm != "",
+    categoria != "otro"
+  )
+
+excel_aceptados_upe <- datos_upe %>% 
+  filter(upe == "aceptado") %>% 
+  transmute(
+    CLUES = clues,
+    Candidato = link_carpeta,
+    Puesto = clave_puesto,
+    Fase = prioridad_ai
+  ) %>% 
+  arrange(CLUES, Puesto, Candidato)
+
+writexl::write_xlsx(
+  excel_aceptados_upe,
+  "C:/Users/brittany.pereo/Downloads/aceptados_upe.xlsx"
+)
+
+resumen_distribucion <- registros_completos %>% 
+  count(categoria, name = "total")
+
+valor_distribucion <- function(cat) {
+  valor <- resumen_distribucion %>% 
+    filter(categoria == cat) %>% 
+    pull(total)
+  
+  if (length(valor) == 0) 0 else valor
+}
+
+registros_detalle <- registros_completos %>% 
+  filter(categoria != "otro")
+
+resumen_registros <- tibble::tibble(
+  estatus = c("Registros completos", "Registros incompletos"),
+  total = c(nrow(registros_completos), nrow(registros_incompletos))
+) %>% 
+  mutate(
+    porcentaje = total / sum(total),
+    etiqueta = paste0(
+      estatus, "\n",
+      comma(total), " registros\n",
+      percent(porcentaje, accuracy = 1)
+    )
+  )
+
+total_registros <- sum(resumen_registros$total)
+fecha_actualizacion <- format(Sys.time(), "%d/%m/%Y %H:%M")
+
+pct_completos <- nrow(registros_completos) / total_registros
+pct_incompletos <- nrow(registros_incompletos) / total_registros
+
+resumen_revision_uas <- registros_completos %>% 
+  mutate(
+    revision_uas = str_to_lower(str_squish(revision_uas)),
+    revision_uas = tidyr::replace_na(revision_uas, "")
+  ) %>% 
+  summarise(
+    aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
+    rechazados = sum(revision_uas == "no aprobado", na.rm = TRUE),
+    por_revisar = sum(revision_uas == "", na.rm = TRUE)
+  )
+
+total_aprobados <- resumen_revision_uas$aprobados
+total_rechazados <- resumen_revision_uas$rechazados
+total_por_revisar <- resumen_revision_uas$por_revisar
+
+pct_aprobados_total <- total_aprobados / total_registros
+pct_rechazados_total <- total_rechazados / total_registros
+pct_por_revisar_total <- total_por_revisar / total_registros
+
+pct_aprobados_completos <- total_aprobados / nrow(registros_completos)
+pct_rechazados_completos <- total_rechazados / nrow(registros_completos)
+pct_por_revisar_completos <- total_por_revisar / nrow(registros_completos)
+
+resumen_por_categoria <- registros_detalle %>% 
+  mutate(
+    revision_uas = str_to_lower(str_squish(revision_uas)),
+    revision_uas = tidyr::replace_na(revision_uas, "")
+  ) %>% 
+  group_by(categoria) %>% 
+  summarise(
+    total = n(),
+    aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
+    rechazados = sum(revision_uas == "no aprobado", na.rm = TRUE),
+    por_revisar = sum(revision_uas == "", na.rm = TRUE),
+    .groups = "drop"
+  )
+
+resumen_global <- registros_detalle %>% 
+  mutate(
+    revision_uas = str_to_lower(str_squish(revision_uas)),
+    revision_uas = tidyr::replace_na(revision_uas, "")
+  ) %>% 
+  summarise(
+    categoria = "global",
+    total = n(),
+    aprobados = sum(revision_uas == "aprobado", na.rm = TRUE),
+    rechazados = sum(revision_uas == "no aprobado", na.rm = TRUE),
+    por_revisar = sum(revision_uas == "", na.rm = TRUE)
+  )
+
+resumen_tabs <- bind_rows(resumen_global, resumen_por_categoria)
+
+valor_resumen <- function(cat, variable) {
+  valor <- resumen_tabs %>% 
+    filter(categoria == cat) %>% 
+    pull({{ variable }})
+  
+  if (length(valor) == 0) 0 else valor
+}
+
+resumen_global_upe <- datos_upe %>% 
+  summarise(
+    categoria = "global",
+    total = n(),
+    aprobados = sum(upe == "aceptado", na.rm = TRUE),
+    rechazados = sum(upe == "rechazado", na.rm = TRUE),
+    por_revisar = sum(upe == "revision" | upe == "", na.rm = TRUE)
+  )
+
+resumen_por_categoria_upe <- datos_upe %>% 
+  group_by(categoria) %>% 
+  summarise(
+    total = n(),
+    aprobados = sum(upe == "aceptado", na.rm = TRUE),
+    rechazados = sum(upe == "rechazado", na.rm = TRUE),
+    por_revisar = sum(upe == "revision" | upe == "", na.rm = TRUE),
+    .groups = "drop"
+  )
+
+resumen_tabs_upe <- bind_rows(resumen_global_upe, resumen_por_categoria_upe)
+
+valor_resumen_upe <- function(cat, variable) {
+  valor <- resumen_tabs_upe %>% 
+    filter(categoria == cat) %>% 
+    pull({{ variable }})
+  
+  if (length(valor) == 0) 0 else valor
+}
+```
+
+
+
+<div style="background-color:#f4f6f8; padding:18px; border-radius:14px; margin-bottom:20px;">
+<h2 style="margin-bottom:4px;">Seguimiento de registros de candidatos UAS</h2>
+
+<p style="font-size:16px; margin-bottom:0;">
+Reporte actualizado el: <b>`r fecha_actualizacion`</b>
+</p>
+</div>
+
+## Resumen general
+
+<details open>
+<summary><b>Nivel global</b></summary>
+
+<div style="display:grid; gap:18px; margin-bottom:28px;">
+
+<div style="background:linear-gradient(135deg,#0D5D4A,#1E6B57); color:white; padding:26px; border-radius:16px;">
+<h3 style="margin:0;">Total de registros</h3>
+<p style="font-size:42px; font-weight:bold; margin:10px 0 0 0;">`r comma(total_registros)`</p>
+</div>
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:18px;">
+
+<div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:24px; border-radius:16px;">
+<h3>Completos</h3>
+<p style="font-size:34px; font-weight:bold; color:#1E5B4F; margin:0;">`r comma(nrow(registros_completos))`</p>
+<p style="margin-top:8px;">`r percent(pct_completos, accuracy = 1)` del total</p>
+</div>
+
+<div style="background-color:#fff6f7; border:1px solid #f0cfd6; padding:24px; border-radius:16px;">
+<h3>Incompletos</h3>
+<p style="font-size:34px; font-weight:bold; color:#A02142; margin:0;">`r comma(nrow(registros_incompletos))`</p>
+<p style="margin-top:8px;">`r percent(pct_incompletos, accuracy = 1)` del total</p>
+</div>
+
+</div>
+</div>
+</details>
+
+<details open>
+<summary><b>Distribución de los registros completos</b></summary>
+<div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:18px; margin-top:18px; margin-bottom:18px;">
+<div style="background:#f8fafc; border:1px solid #e5e7eb; padding:20px 24px; border-radius:18px;">
+  <p style="margin:0; color:#6b7280; font-size:18px; font-weight:600;">
+    Personal médico general
+  </p>
+  <p style="font-size:38px; font-weight:800; color:#263238; margin:6px 0 0 0;">
+    `r comma(valor_distribucion("med_gen"))`
+  </p>
+</div>
+
+<div style="background:#f8fafc; border:1px solid #e5e7eb; padding:20px 24px; border-radius:18px;">
+  <p style="margin:0; color:#6b7280; font-size:18px; font-weight:600;">
+    Personal médico especialista
+  </p>
+  <p style="font-size:38px; font-weight:800; color:#263238; margin:6px 0 0 0;">
+    `r comma(valor_distribucion("med_especi"))`
+  </p>
+</div>
+
+<div style="background:#f8fafc; border:1px solid #e5e7eb; padding:20px 24px; border-radius:18px;">
+  <p style="margin:0; color:#6b7280; font-size:18px; font-weight:600;">
+    Personal de enfermería
+  </p>
+  <p style="font-size:38px; font-weight:800; color:#263238; margin:6px 0 0 0;">
+    `r comma(valor_distribucion("enf"))`
+  </p>
+</div>
+
+<div style="background:#f8fafc; border:1px solid #e5e7eb; padding:20px 24px; border-radius:18px;">
+  <p style="margin:0; color:#6b7280; font-size:18px; font-weight:600;">
+    Otros
+  </p>
+  <p style="font-size:38px; font-weight:800; color:#263238; margin:6px 0 0 0;">
+    `r comma(valor_distribucion("otro"))`
+  </p>
+</div>
+
+</div>
+</details>
+
+<details open>
+<summary><b>Detalle de registros completos</b></summary>
+
+
+## Resumen por estatus UAS
+
+<div style="display:grid; gap:24px; margin-top:18px;">
+
+<!-- GLOBAL -->
+<div style="background:#f8fafc; border:1px solid #e5e7eb; padding:24px; border-radius:20px;">
+
+<h3 style="margin:0 0 18px 0; color:#263238; font-size:24px;">
+Global
+</h3>
+
+<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:18px;">
+
+<div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Aprobados UAS</p>
+<p style="font-size:38px; font-weight:800; color:#1E5B4F; margin:18px 0 0 0;">
+`r comma(valor_resumen("global", aprobados))`
+</p>
+</div>
+
+<div style="background-color:#fffaf0; border:1px solid #f1d58a; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Por revisar UAS</p>
+<p style="font-size:38px; font-weight:800; color:#9A6B00; margin:18px 0 0 0;">
+`r comma(valor_resumen("global", por_revisar))`
+</p>
+</div>
+
+<div style="background-color:#fff6f7; border:1px solid #f0cfd6; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Rechazados UAS</p>
+<p style="font-size:38px; font-weight:800; color:#A02142; margin:18px 0 0 0;">
+`r comma(valor_resumen("global", rechazados))`
+</p>
+</div>
+
+</div>
+</div>
+
+
+<!-- MÉDICOS GENERALES -->
+<div style="background:#f8fafc; border:1px solid #e5e7eb; padding:24px; border-radius:20px;">
+
+<h3 style="margin:0 0 18px 0; color:#263238; font-size:24px;">
+Médicos generales
+</h3>
+
+<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:18px;">
+
+<div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Aprobados UAS</p>
+<p style="font-size:38px; font-weight:800; color:#1E5B4F; margin:18px 0 0 0;">
+`r comma(valor_resumen("med_gen", aprobados))`
+</p>
+</div>
+
+<div style="background-color:#fffaf0; border:1px solid #f1d58a; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Por revisar UAS</p>
+<p style="font-size:38px; font-weight:800; color:#9A6B00; margin:18px 0 0 0;">
+`r comma(valor_resumen("med_gen", por_revisar))`
+</p>
+</div>
+
+<div style="background-color:#fff6f7; border:1px solid #f0cfd6; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Rechazados UAS</p>
+<p style="font-size:38px; font-weight:800; color:#A02142; margin:18px 0 0 0;">
+`r comma(valor_resumen("med_gen", rechazados))`
+</p>
+</div>
+
+</div>
+</div>
+
+
+<!-- MÉDICOS ESPECIALISTAS -->
+<div style="background:#f8fafc; border:1px solid #e5e7eb; padding:24px; border-radius:20px;">
+
+<h3 style="margin:0 0 18px 0; color:#263238; font-size:24px;">
+Médicos especialistas
+</h3>
+
+<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:18px;">
+
+<div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Aprobados UAS</p>
+<p style="font-size:38px; font-weight:800; color:#1E5B4F; margin:18px 0 0 0;">
+`r comma(valor_resumen("med_especi", aprobados))`
+</p>
+</div>
+
+<div style="background-color:#fffaf0; border:1px solid #f1d58a; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Por revisar UAS</p>
+<p style="font-size:38px; font-weight:800; color:#9A6B00; margin:18px 0 0 0;">
+`r comma(valor_resumen("med_especi", por_revisar))`
+</p>
+</div>
+
+<div style="background-color:#fff6f7; border:1px solid #f0cfd6; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Rechazados UAS</p>
+<p style="font-size:38px; font-weight:800; color:#A02142; margin:18px 0 0 0;">
+`r comma(valor_resumen("med_especi", rechazados))`
+</p>
+</div>
+
+</div>
+</div>
+
+
+<!-- ENFERMERÍA -->
+<div style="background:#f8fafc; border:1px solid #e5e7eb; padding:24px; border-radius:20px;">
+
+<h3 style="margin:0 0 18px 0; color:#263238; font-size:24px;">
+Enfermería
+</h3>
+
+<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:18px;">
+
+<div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Aprobados UAS</p>
+<p style="font-size:38px; font-weight:800; color:#1E5B4F; margin:18px 0 0 0;">
+`r comma(valor_resumen("enf", aprobados))`
+</p>
+</div>
+
+<div style="background-color:#fffaf0; border:1px solid #f1d58a; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Por revisar UAS</p>
+<p style="font-size:38px; font-weight:800; color:#9A6B00; margin:18px 0 0 0;">
+`r comma(valor_resumen("enf", por_revisar))`
+</p>
+</div>
+
+<div style="background-color:#fff6f7; border:1px solid #f0cfd6; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Rechazados UAS</p>
+<p style="font-size:38px; font-weight:800; color:#A02142; margin:18px 0 0 0;">
+`r comma(valor_resumen("enf", rechazados))`
+</p>
+</div>
+
+</div>
+</div>
+
+</div>
+
+<div style="background-color:#eaf4ff; color:#155a9c; padding:14px 18px; border-radius:12px;">
+Los porcentajes de Aprobados, Rechazados y Por revisar se calculan respecto al total de registros y respecto a los registros completos.
+</div>
+
+## Resumen por estatus UPE
+
+<div style="display:grid; gap:24px; margin-top:18px;">
+
+<!-- GLOBAL -->
+<div style="background:#f8fafc; border:1px solid #e5e7eb; padding:24px; border-radius:20px;">
+<h3 style="margin:0 0 18px 0; color:#263238; font-size:24px;">Global</h3>
+
+<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:18px;">
+
+<div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Aprobados UPE</p>
+<p style="font-size:38px; font-weight:800; color:#1E5B4F; margin:18px 0 0 0;">
+`r comma(valor_resumen_upe("global", aprobados))`
+</p>
+</div>
+
+<div style="background-color:#fffaf0; border:1px solid #f1d58a; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Por revisar UPE</p>
+<p style="font-size:38px; font-weight:800; color:#9A6B00; margin:18px 0 0 0;">
+`r comma(valor_resumen_upe("global", por_revisar))`
+</p>
+</div>
+
+<div style="background-color:#fff6f7; border:1px solid #f0cfd6; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Rechazados UPE</p>
+<p style="font-size:38px; font-weight:800; color:#A02142; margin:18px 0 0 0;">
+`r comma(valor_resumen_upe("global", rechazados))`
+</p>
+</div>
+
+</div>
+</div>
+
+
+<!-- MÉDICOS GENERALES -->
+<div style="background:#f8fafc; border:1px solid #e5e7eb; padding:24px; border-radius:20px;">
+<h3 style="margin:0 0 18px 0; color:#263238; font-size:24px;">Médicos generales</h3>
+
+<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:18px;">
+
+<div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Aprobados UPE</p>
+<p style="font-size:38px; font-weight:800; color:#1E5B4F; margin:18px 0 0 0;">
+`r comma(valor_resumen_upe("med_gen", aprobados))`
+</p>
+</div>
+
+<div style="background-color:#fffaf0; border:1px solid #f1d58a; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Por revisar UPE</p>
+<p style="font-size:38px; font-weight:800; color:#9A6B00; margin:18px 0 0 0;">
+`r comma(valor_resumen_upe("med_gen", por_revisar))`
+</p>
+</div>
+
+<div style="background-color:#fff6f7; border:1px solid #f0cfd6; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Rechazados UPE</p>
+<p style="font-size:38px; font-weight:800; color:#A02142; margin:18px 0 0 0;">
+`r comma(valor_resumen_upe("med_gen", rechazados))`
+</p>
+</div>
+
+</div>
+</div>
+
+
+<!-- MÉDICOS ESPECIALISTAS -->
+<div style="background:#f8fafc; border:1px solid #e5e7eb; padding:24px; border-radius:20px;">
+<h3 style="margin:0 0 18px 0; color:#263238; font-size:24px;">Médicos especialistas</h3>
+
+<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:18px;">
+
+<div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Aprobados UPE</p>
+<p style="font-size:38px; font-weight:800; color:#1E5B4F; margin:18px 0 0 0;">
+`r comma(valor_resumen_upe("med_especi", aprobados))`
+</p>
+</div>
+
+<div style="background-color:#fffaf0; border:1px solid #f1d58a; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Por revisar UPE</p>
+<p style="font-size:38px; font-weight:800; color:#9A6B00; margin:18px 0 0 0;">
+`r comma(valor_resumen_upe("med_especi", por_revisar))`
+</p>
+</div>
+
+<div style="background-color:#fff6f7; border:1px solid #f0cfd6; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Rechazados UPE</p>
+<p style="font-size:38px; font-weight:800; color:#A02142; margin:18px 0 0 0;">
+`r comma(valor_resumen_upe("med_especi", rechazados))`
+</p>
+</div>
+
+</div>
+</div>
+
+
+<!-- ENFERMERÍA -->
+<div style="background:#f8fafc; border:1px solid #e5e7eb; padding:24px; border-radius:20px;">
+<h3 style="margin:0 0 18px 0; color:#263238; font-size:24px;">Enfermería</h3>
+
+<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:18px;">
+
+<div style="background-color:#f4fbf8; border:1px solid #cfe8dc; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Aprobados UPE</p>
+<p style="font-size:38px; font-weight:800; color:#1E5B4F; margin:18px 0 0 0;">
+`r comma(valor_resumen_upe("enf", aprobados))`
+</p>
+</div>
+
+<div style="background-color:#fffaf0; border:1px solid #f1d58a; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Por revisar UPE</p>
+<p style="font-size:38px; font-weight:800; color:#9A6B00; margin:18px 0 0 0;">
+`r comma(valor_resumen_upe("enf", por_revisar))`
+</p>
+</div>
+
+<div style="background-color:#fff6f7; border:1px solid #f0cfd6; padding:22px; border-radius:18px;">
+<p style="margin:0; color:#4b5563; font-size:18px; font-weight:700;">Rechazados UPE</p>
+<p style="font-size:38px; font-weight:800; color:#A02142; margin:18px 0 0 0;">
+`r comma(valor_resumen_upe("enf", rechazados))`
+</p>
+</div>
+
+</div>
+</div>
+
+</div>
+</details>
+
+<!-- ## Avance de registros completos  -->
+<!-- <details open> -->
+<!-- <summary><b>Registros completos por estado</b></summary> -->
+
+<!-- ```{r} -->
+<!-- #| fig-width: 9 -->
+<!-- #| fig-height: 7 -->
+
+<!-- ggplot( -->
+<!--   avance_estado, -->
+<!--   aes( -->
+<!--     x = reorder(estado, avance), -->
+<!--     y = avance -->
+<!--   ) -->
+<!-- ) + -->
+
+<!--   geom_col( -->
+<!--     fill = "#d9efe6", -->
+<!--     width = 0.75 -->
+<!--   ) + -->
+
+<!--   geom_col( -->
+<!--     aes( -->
+<!--       y = dplyr::if_else( -->
+<!--         total_registros == 0, -->
+<!--         0, -->
+<!--         rechazados / total_registros -->
+<!--       ) -->
+<!--     ), -->
+<!--     fill = "#A02142", -->
+<!--     width = 0.75 -->
+<!--   ) + -->
+
+<!--   geom_col( -->
+<!--     aes( -->
+<!--       y = dplyr::if_else( -->
+<!--         total_registros == 0, -->
+<!--         0, -->
+<!--         aprobados / total_registros -->
+<!--       ) -->
+<!--     ), -->
+<!--     fill = "#1E5B4F", -->
+<!--     width = 0.75 -->
+<!--   ) + -->
+
+<!--   geom_text( -->
+<!--     aes(label = etiqueta_avance), -->
+<!--     hjust = -0.05, -->
+<!--     size = 3.1 -->
+<!--   ) + -->
+
+<!--   geom_text( -->
+<!--   aes( -->
+<!--     y = dplyr::if_else( -->
+<!--       total_registros == 0, -->
+<!--       0, -->
+<!--       rechazados / total_registros -->
+<!--     ), -->
+<!--     label = dplyr::if_else( -->
+<!--       rechazados > 0, -->
+<!--       comma(rechazados), -->
+<!--       "" -->
+<!--     ) -->
+<!--   ), -->
+<!--   hjust = 1.1, -->
+<!--   color = "white", -->
+<!--   size = 2.7, -->
+<!--   fontface = "bold" -->
+<!-- ) + -->
+
+<!--   geom_text( -->
+<!--   aes( -->
+<!--     y = dplyr::if_else( -->
+<!--       total_registros == 0, -->
+<!--       0, -->
+<!--       aprobados / total_registros -->
+<!--     ), -->
+<!--     label = dplyr::if_else( -->
+<!--       aprobados > 0, -->
+<!--       comma(aprobados), -->
+<!--       "" -->
+<!--     ) -->
+<!--   ), -->
+<!--   hjust = 1.1, -->
+<!--   color = "white", -->
+<!--   size = 2.7, -->
+<!--   fontface = "bold" -->
+<!-- ) + -->
+
+<!--   coord_flip() + -->
+
+<!-- scale_y_continuous( -->
+<!--   labels = \(x) percent(x, accuracy = 1), -->
+<!--   limits = c(0, 1.18) -->
+<!-- )+ -->
+
+<!-- labs( -->
+<!--   title = "", -->
+<!--   caption = paste0( -->
+<!--     "<span style='color:#d9efe6;'>■</span> Registros completos&nbsp;&nbsp;&nbsp;", -->
+<!--     "<span style='color:#1E5B4F;'>■</span> Candidatos aprobados UAS&nbsp;&nbsp;&nbsp;", -->
+<!--     "<span style='color:#A02142;'>■</span> Candidatos no aprobados UAS" -->
+<!--   ), -->
+<!--   x = NULL, -->
+<!--   y = "Avance" -->
+<!-- ) + -->
+
+<!--   theme_minimal() + -->
+
+<!-- theme( -->
+<!--   plot.title = element_text( -->
+<!--     face = "bold", -->
+<!--     size = 18 -->
+<!--   ), -->
+
+<!--   plot.subtitle = element_text( -->
+<!--     size = 12 -->
+<!--   ), -->
+
+<!--   axis.text.y = element_text( -->
+<!--     size = 12 -->
+<!--   ), -->
+
+<!--   axis.text.x = element_text( -->
+<!--     size = 11 -->
+<!--   ), -->
+
+<!--   axis.title.x = element_text( -->
+<!--     size = 13 -->
+<!--   ), -->
+<!-- plot.caption = ggtext::element_markdown( -->
+<!--   size = 11, -->
+<!--   hjust = 0, -->
+<!--   margin = margin(t = 15) -->
+<!-- ), -->
+
+<!--   panel.grid.major.y = element_blank() -->
+<!-- ) -->
+<!-- ``` -->
+<!-- </details> -->
+
+## Tabla de unidades médicas
+
+
+
+```{r}
+tabla_unidades <- registros_detalle %>% 
+  mutate(
+    revision_uas = str_to_lower(str_squish(revision_uas)),
+    revision_uas = tidyr::replace_na(revision_uas, "")
+  ) %>% 
+  group_by(
+    estado,
+    clues,
+    unidad_medica,
+    categoria
+  ) %>% 
+  summarise(
+    propuestas = n(),
+    aprobados_uas = sum(
+      revision_uas == "aprobado",
+      na.rm = TRUE
+    ),
+    .groups = "drop"
+  ) %>% 
+  tidyr::pivot_wider(
+    names_from = categoria,
+    values_from = c(
+      propuestas,
+      aprobados_uas
+    ),
+    values_fill = 0
+  )
+
+tabla_upe_unidades <- datos_upe %>% 
+  group_by(
+    clues,
+    categoria
+  ) %>% 
+  summarise(
+    aprobados_upe = sum(
+      upe == "aceptado",
+      na.rm = TRUE
+    ),
+    .groups = "drop"
+  ) %>% 
+  tidyr::pivot_wider(
+    names_from = categoria,
+    values_from = aprobados_upe,
+    names_prefix = "aprobados_upe_",
+    values_fill = 0
+  )
+
+tabla_unidades <- tabla_unidades %>% 
+  left_join(
+    tabla_upe_unidades,
+    by = "clues"
+  )
+
+columnas_necesarias <- c(
+  "propuestas_med_especi",
+  "propuestas_med_gen",
+  "propuestas_enf",
+  
+  "aprobados_uas_med_especi",
+  "aprobados_uas_med_gen",
+  "aprobados_uas_enf",
+  
+  "aprobados_upe_med_especi",
+  "aprobados_upe_med_gen",
+  "aprobados_upe_enf"
+)
+
+for (col in columnas_necesarias) {
+  if (!col %in% names(tabla_unidades)) {
+    tabla_unidades[[col]] <- 0
+  }
+}
+
+tabla_unidades <- tabla_unidades %>% 
+  mutate(
+    across(
+      all_of(columnas_necesarias),
+      ~ tidyr::replace_na(.x, 0)
+    ),
+    
+    total_propuestas =
+      propuestas_med_especi +
+      propuestas_med_gen +
+      propuestas_enf,
+    
+    total_aprobados_uas =
+      aprobados_uas_med_especi +
+      aprobados_uas_med_gen +
+      aprobados_uas_enf,
+    
+    total_aprobados_upe =
+      aprobados_upe_med_especi +
+      aprobados_upe_med_gen +
+      aprobados_upe_enf
+  ) %>% 
+  arrange(desc(total_propuestas))
+
+crear_detalle_html <- function(df) {
+  
+  if (nrow(df) == 0) {
+    return("<em>Sin registros</em>")
+  }
+  
+  df %>% 
+    mutate(
+      cnpm = tidyr::replace_na(cnpm, ""),
+      clave_puesto = tidyr::replace_na(clave_puesto, "")
+    ) %>% 
+    count(
+      cnpm,
+      clave_puesto,
+      name = "total"
+    ) %>% 
+    arrange(desc(total)) %>% 
+    mutate(
+      fila = paste0(
+        "<tr>",
+        "<td>", cnpm, "</td>",
+        "<td>", clave_puesto, "</td>",
+        "<td style='text-align:right;'>", comma(total), "</td>",
+        "</tr>"
+      )
+    ) %>% 
+    summarise(
+      html = paste0(
+        "<div style='padding:14px;'>",
+        
+        "<h3 style='margin-top:0;'>Desglose por CNPM y clave de puesto</h3>",
+        
+        "<table style='width:100%; border-collapse:collapse;'>",
+        
+        "<thead>",
+        "<tr>",
+        
+        "<th style='text-align:left; border-bottom:1px solid #ddd; padding:8px;'>CNPM</th>",
+        
+        "<th style='text-align:left; border-bottom:1px solid #ddd; padding:8px;'>Clave puesto</th>",
+        
+        "<th style='text-align:right; border-bottom:1px solid #ddd; padding:8px;'>Total</th>",
+        
+        "</tr>",
+        "</thead>",
+        
+        "<tbody>",
+        paste(fila, collapse = ""),
+        "</tbody>",
+        
+        "</table>",
+        "</div>"
+      )
+    ) %>% 
+    pull(html)
+}
+
+boton_modal <- function(valor, detalle_html) {
+  
+  if (is.na(valor) || valor == 0) {
+    return("0")
+  }
+  
+  id <- paste0(
+    "modal_",
+    sample(100000:999999, 1)
+  )
+  
+  paste0(
+    
+    "<button onclick=\"document.getElementById('",
+    id,
+    "').style.display='block'\" ",
+    
+    "style='border:none;
+    background:none;
+    color:#1E5B4F;
+    font-weight:700;
+    cursor:pointer;
+    font-size:15px;'>",
+    
+    comma(valor),
+    
+    "</button>",
+    
+    
+    "<div id='",
+    id,
+    "' style='display:none;
+    position:fixed;
+    z-index:9999;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+    background-color:rgba(0,0,0,0.45);'>",
+    
+    
+    "<div style='background:white;
+    margin:4% auto;
+    padding:22px;
+    border-radius:16px;
+    width:72%;
+    max-height:80%;
+    overflow:auto;
+    box-shadow:0 8px 24px rgba(0,0,0,0.2);'>",
+    
+    
+    "<button onclick=\"document.getElementById('",
+    id,
+    "').style.display='none'\" ",
+    
+    "style='float:right;
+    border:none;
+    background:#A02142;
+    color:white;
+    padding:8px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:600;'>Cerrar</button>",
+    
+    detalle_html,
+    
+    "</div>",
+    "</div>"
+  )
+}
+
+crear_tabla_dt <- function(tabla) {
+  
+  DT::datatable(
+    tabla,
+    escape = FALSE,
+    filter = "top",
+    width = "100%",
+    
+    class = "stripe hover compact",
+    
+    options = list(
+      pageLength = 10,
+      autoWidth = TRUE,
+      scrollX = TRUE,
+      dom = "tip",
+      
+      language = list(
+        search = "Buscar:",
+        lengthMenu = "Mostrar _MENU_ registros",
+        
+        info = "Mostrando _START_ a _END_ de _TOTAL_ registros",
+        
+        paginate = list(
+          previous = "Anterior",
+          `next` = "Siguiente"
+        )
+      )
+    ),
+    
+    rownames = FALSE
+  ) %>% 
+    
+    DT::formatStyle(
+      columns = names(tabla),
+      fontSize = "13px"
+    ) %>% 
+    
+    DT::formatStyle(
+      "Unidad médica",
+      fontWeight = "600"
+    )%>% 
+  
+  DT::formatStyle(
+    names(tabla)[sapply(tabla, is.character) == FALSE],
+    
+    textAlign = "center",
+    fontWeight = "700",
+    backgroundColor = "#f4fbf8"
+  )
+}
+```
+
+
+
+::: {.panel-tabset}
+
+## Global
+
+
+```{r}
+detalle_propuestas_global <- registros_detalle %>% 
+  group_by(clues) %>% 
+  group_modify(~ tibble::tibble(
+    detalle_propuestas = crear_detalle_html(.x)
+  )) %>% 
+  ungroup()
+
+detalle_uas_global <- registros_detalle %>% 
+  mutate(
+    revision_uas = str_to_lower(str_squish(revision_uas)),
+    revision_uas = tidyr::replace_na(revision_uas, "")
+  ) %>% 
+  filter(revision_uas == "aprobado") %>% 
+  group_by(clues) %>% 
+  group_modify(~ tibble::tibble(
+    detalle_uas = crear_detalle_html(.x)
+  )) %>% 
+  ungroup()
+
+detalle_upe_global <- datos_upe %>% 
+  filter(upe == "aceptado") %>% 
+  group_by(clues) %>% 
+  group_modify(~ tibble::tibble(
+    detalle_upe = crear_detalle_html(.x)
+  )) %>% 
+  ungroup()
+
+tabla_totales <- tabla_unidades %>% 
+  mutate(
+    unidad_medica = str_to_title(unidad_medica)
+  ) %>% 
+  
+  left_join(
+    detalle_propuestas_global,
+    by = "clues"
+  ) %>% 
+  
+  left_join(
+    detalle_uas_global,
+    by = "clues"
+  ) %>% 
+  
+  left_join(
+    detalle_upe_global,
+    by = "clues"
+  ) %>% 
+  
+  mutate(
+    detalle_propuestas = tidyr::replace_na(
+      detalle_propuestas,
+      "<em>Sin registros</em>"
+    ),
+    
+    detalle_uas = tidyr::replace_na(
+      detalle_uas,
+      "<em>Sin registros</em>"
+    ),
+    
+    detalle_upe = tidyr::replace_na(
+      detalle_upe,
+      "<em>Sin registros</em>"
+    )
+  ) %>% 
+  
+  transmute(
+    Estado = estado,
+    
+    CLUES = clues,
+    
+    `Unidad médica` = unidad_medica,
+    
+    `Total propuestas` =
+      mapply(
+        boton_modal,
+        total_propuestas,
+        detalle_propuestas
+      ),
+    
+    `Total aprobados UAS` =
+      mapply(
+        boton_modal,
+        total_aprobados_uas,
+        detalle_uas
+      ),
+    
+    `Total aprobados UPE` =
+      mapply(
+        boton_modal,
+        total_aprobados_upe,
+        detalle_upe
+      )
+  )
+
+crear_tabla_dt(tabla_totales)
+```
+
+
+## Médicos generales
+
+
+
+```{r}
+tabla_med_gen <- tabla_unidades %>% 
+  mutate(
+    unidad_medica = str_to_title(unidad_medica)
+  ) %>% 
+  select(
+    Estado = estado,
+    CLUES = clues,
+    `Unidad médica` = unidad_medica,
+    `Médicos generales propuestos` = propuestas_med_gen,
+    `Médicos generales aprobados UAS` = aprobados_uas_med_gen,
+    `Médicos generales aprobados UPE` = aprobados_upe_med_gen
+  )
+
+crear_tabla_dt(tabla_med_gen)
+```
+
+
+
+## Médicos especialistas
+
+
+```{r}
+detalle_propuestas_med_especi <- registros_detalle %>% 
+  filter(categoria == "med_especi") %>% 
+  group_by(clues) %>% 
+  group_modify(~ tibble::tibble(
+    detalle_propuestas = crear_detalle_html(.x)
+  )) %>% 
+  ungroup()
+
+detalle_uas_med_especi <- registros_detalle %>% 
+  mutate(
+    revision_uas = str_to_lower(str_squish(revision_uas)),
+    revision_uas = tidyr::replace_na(revision_uas, "")
+  ) %>% 
+  filter(
+    categoria == "med_especi",
+    revision_uas == "aprobado"
+  ) %>% 
+  group_by(clues) %>% 
+  group_modify(~ tibble::tibble(
+    detalle_uas = crear_detalle_html(.x)
+  )) %>% 
+  ungroup()
+
+detalle_upe_med_especi <- datos_upe %>% 
+  filter(
+    categoria == "med_especi",
+    upe == "aceptado"
+  ) %>% 
+  group_by(clues) %>% 
+  group_modify(~ tibble::tibble(
+    detalle_upe = crear_detalle_html(.x)
+  )) %>% 
+  ungroup()
+
+tabla_med_especi <- tabla_unidades %>% 
+  mutate(
+    unidad_medica = str_to_title(unidad_medica)
+  ) %>% 
+  
+  left_join(
+    detalle_propuestas_med_especi,
+    by = "clues"
+  ) %>% 
+  
+  left_join(
+    detalle_uas_med_especi,
+    by = "clues"
+  ) %>% 
+  
+  left_join(
+    detalle_upe_med_especi,
+    by = "clues"
+  ) %>% 
+  
+  mutate(
+    detalle_propuestas = tidyr::replace_na(
+      detalle_propuestas,
+      "<em>Sin registros</em>"
+    ),
+    
+    detalle_uas = tidyr::replace_na(
+      detalle_uas,
+      "<em>Sin registros</em>"
+    ),
+    
+    detalle_upe = tidyr::replace_na(
+      detalle_upe,
+      "<em>Sin registros</em>"
+    )
+  ) %>% 
+  
+  transmute(
+    Estado = estado,
+    
+    CLUES = clues,
+    
+    `Unidad médica` = unidad_medica,
+    
+    `Médicos especialistas propuestos` =
+      mapply(
+        boton_modal,
+        propuestas_med_especi,
+        detalle_propuestas
+      ),
+    
+    `Médicos especialistas aprobados UAS` =
+      mapply(
+        boton_modal,
+        aprobados_uas_med_especi,
+        detalle_uas
+      ),
+    
+    `Médicos especialistas aprobados UPE` =
+      mapply(
+        boton_modal,
+        aprobados_upe_med_especi,
+        detalle_upe
+      )
+  )
+
+crear_tabla_dt(tabla_med_especi)
+```
+
+
+
+## Enfermería
+
+
+```{r}
+detalle_propuestas_enf <- registros_detalle %>% 
+  filter(categoria == "enf") %>% 
+  group_by(clues) %>% 
+  group_modify(~ tibble::tibble(
+    detalle_propuestas = crear_detalle_html(.x)
+  )) %>% 
+  ungroup()
+
+detalle_uas_enf <- registros_detalle %>% 
+  mutate(
+    revision_uas = str_to_lower(str_squish(revision_uas)),
+    revision_uas = tidyr::replace_na(revision_uas, "")
+  ) %>% 
+  filter(
+    categoria == "enf",
+    revision_uas == "aprobado"
+  ) %>% 
+  group_by(clues) %>% 
+  group_modify(~ tibble::tibble(
+    detalle_uas = crear_detalle_html(.x)
+  )) %>% 
+  ungroup()
+
+detalle_upe_enf <- datos_upe %>% 
+  filter(
+    categoria == "enf",
+    upe == "aceptado"
+  ) %>% 
+  group_by(clues) %>% 
+  group_modify(~ tibble::tibble(
+    detalle_upe = crear_detalle_html(.x)
+  )) %>% 
+  ungroup()
+
+tabla_enf <- tabla_unidades %>% 
+  mutate(
+    unidad_medica = str_to_title(unidad_medica)
+  ) %>% 
+  
+  left_join(
+    detalle_propuestas_enf,
+    by = "clues"
+  ) %>% 
+  
+  left_join(
+    detalle_uas_enf,
+    by = "clues"
+  ) %>% 
+  
+  left_join(
+    detalle_upe_enf,
+    by = "clues"
+  ) %>% 
+  
+  mutate(
+    detalle_propuestas = tidyr::replace_na(
+      detalle_propuestas,
+      "<em>Sin registros</em>"
+    ),
+    
+    detalle_uas = tidyr::replace_na(
+      detalle_uas,
+      "<em>Sin registros</em>"
+    ),
+    
+    detalle_upe = tidyr::replace_na(
+      detalle_upe,
+      "<em>Sin registros</em>"
+    )
+  ) %>% 
+  
+  transmute(
+    Estado = estado,
+    
+    CLUES = clues,
+    
+    `Unidad médica` = unidad_medica,
+    
+    `Enfermería propuestas` =
+      mapply(
+        boton_modal,
+        propuestas_enf,
+        detalle_propuestas
+      ),
+    
+    `Enfermería aprobadas UAS` =
+      mapply(
+        boton_modal,
+        aprobados_uas_enf,
+        detalle_uas
+      ),
+    
+    `Enfermería aprobadas UPE` =
+      mapply(
+        boton_modal,
+        aprobados_upe_enf,
+        detalle_upe
+      )
+  )
+
+crear_tabla_dt(tabla_enf)
+```
+
+
+
+:::
+
+
