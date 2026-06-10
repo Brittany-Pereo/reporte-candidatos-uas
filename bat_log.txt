@@ -1,4 +1,4 @@
-INICIO BAT 05/06/2026 17:24:15.46 
+INICIO BAT 10/06/2026 10:18:23.71 
 error: cannot pull with rebase: You have unstaged changes.
 error: Please commit or stash them.
 [1] 128
@@ -7,52 +7,3 @@ error: Please commit or stash them.
 processing file: reporte_google_sheet.qmd
 1/13                  
 2/13 [setup]          
-[ERROR] workbook_close(): Error creating 'C:\Users\brittany.pereo\Downloads\aceptados_upe.xlsx'. System error = Permission denied
-Error:
-! Error in libxlsxwriter: 'Error creating output xlsx file. Usually a permissions error.'
-Backtrace:
-    ▆
- 1. └─writexl::write_xlsx(excel_aceptados_upe, "C:/Users/brittany.pereo/Downloads/aceptados_upe.xlsx")
-
-Quitting from reporte_google_sheet.qmd:20-235 [setup]
-Ejecución interrumpida
-Error in `quarto::quarto_render()`:
-! Error running quarto CLI from R.
-Caused by error in `quarto::quarto_render()`:
-✖ Error returned by quarto CLI.
-  -----------------------------
-  
-  
-  processing file: reporte_google_sheet.qmd
-  1/13
-  2/13 [setup]
-  [ERROR] workbook_close(): Error creating
-  'C:\Users\brittany.pereo\Downloads\aceptados_upe.xlsx'. System error =
-  Permission denied
-  Error:
-  ! Error in libxlsxwriter: 'Error creating output xlsx file. Usually a
-  permissions error.'
-  Backtrace:
-  ▆
-  1. └─writexl::write_xlsx(excel_aceptados_upe,
-  "C:/Users/brittany.pereo/Downloads/aceptados_upe.xlsx")
-  
-  Quitting from reporte_google_sheet.qmd:20-235 [setup]
-  Ejecución interrumpida
-  
-Caused by error:
-! System command 'quarto.exe' failed
-Backtrace:
-     ▆
-  1. ├─quarto::quarto_render("reporte_google_sheet.qmd")
-  2. │ └─quarto:::quarto_run(args, echo = TRUE, quarto_bin = quarto_bin)
-  3. │   ├─base::withCallingHandlers(...)
-  4. │   └─processx::run(...)
-  5. │     └─throw(...)
-  6. │       └─base::signalCondition(cond)
-  7. └─quarto (local) `<fn>`(`<systm___>`)
-  8.   └─quarto:::wrap_quarto_error(e, args, .call = .call)
-  9.     └─cli::cli_abort(msg, call = .call, parent = cnd, )
- 10.       └─rlang::abort(...)
-Ejecución interrumpida
-FIN BAT 05/06/2026 17:24:46.51 
